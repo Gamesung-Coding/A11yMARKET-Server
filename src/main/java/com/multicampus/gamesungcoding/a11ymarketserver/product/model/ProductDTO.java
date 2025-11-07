@@ -4,8 +4,8 @@ import lombok.*;
 
 /**
  * [ProductDTO]
- * - 클라이언트 응답용 데이터 전송 객체
- * - 목록 조회에 필요한 최소 필드만 포함
+ * - Entity → View 계층 데이터 전달용
+ * - 인증 여부, 등급 필드는 Seller DB 조인 후 확장 예정
  */
 @Getter
 @Setter
@@ -30,6 +30,8 @@ public class ProductDTO {
                 .category(product.getCategory())
                 .price(product.getPrice())
                 .status(product.getStatus())
+                // .certified(product.getSeller().getCertified())  // Seller 엔티티 조인 후
+                // .grade(product.getSeller().getGrade())          // Seller 엔티티 조인 후
                 .build();
     }
 }
