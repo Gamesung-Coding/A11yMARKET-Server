@@ -1,4 +1,4 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.model;
+package com.multicampus.gamesungcoding.a11ymarketserver.address.model;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 public class AddressRequest {
     @Size(max = 100)
-    private String receiverName;
+    private String addressName;
 
     @Size(min = 2, max = 30, message = "수령인 이름은 2~30자여야 합니다.")
     private String receiverName;

@@ -1,6 +1,6 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.repository;
+package com.multicampus.gamesungcoding.a11ymarketserver.address.repository;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.Address;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

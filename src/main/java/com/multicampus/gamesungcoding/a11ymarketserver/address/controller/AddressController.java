@@ -1,8 +1,8 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.controller;
+package com.multicampus.gamesungcoding.a11ymarketserver.address.controller;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.AddressRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.AddressResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.service.AddressService;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.AddressRequest;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.AddressResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.service.AddressService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

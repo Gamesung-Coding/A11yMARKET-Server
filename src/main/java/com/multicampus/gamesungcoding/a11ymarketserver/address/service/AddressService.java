@@ -1,9 +1,9 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.address.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.Address;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.AddressRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.model.AddressResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.repository.AddressRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.Address;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.AddressRequest;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.model.AddressResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.address.repository.AddressRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

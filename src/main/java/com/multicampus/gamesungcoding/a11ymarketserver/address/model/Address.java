@@ -1,4 +1,4 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.model;
+package com.multicampus.gamesungcoding.a11ymarketserver.address.model;
 
 import jakarta.persistence.*;
 import lombok.*;

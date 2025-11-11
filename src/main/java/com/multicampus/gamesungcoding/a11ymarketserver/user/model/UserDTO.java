@@ -2,7 +2,8 @@ package com.multicampus.gamesungcoding.a11ymarketserver.user.model;
 
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -10,15 +11,15 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
-    private String userId;
+    private UUID userId;
     private String userName;
     private String userPass;
     private String userEmail;
     private String userPhone;
     private String userNickname;
     private String userRole;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static UserDTO fromEntity(User user) {
         return UserDTO.builder()
@@ -33,21 +34,4 @@ public class UserDTO {
                 .build();
     }
 
-    public void updateEntity(User user) {
-        if (this.userName != null) {
-            user.setUserName(this.userName);
-        }
-        if (this.userPass != null) {
-            user.setUserPass(this.userPass);
-        }
-        if (this.userEmail != null) {
-            user.setUserEmail(this.userEmail);
-        }
-        if (this.userPhone != null) {
-            user.setUserPhone(this.userPhone);
-        }
-        if (this.userNickname != null) {
-            user.setUserNickname(this.userNickname);
-        }
-    }
 }
