@@ -13,6 +13,7 @@ public class AddressResponse {
 
     private UUID addressId;
     private UUID userId;
+    private String addressName;
     private String receiverName;
     private String receiverPhone;
     private Integer receiverZipcode;
@@ -24,6 +25,7 @@ public class AddressResponse {
         return AddressResponse.builder()
                 .addressId(address.getAddressId())
                 .userId(address.getUserId())
+                .addressName(address.getAddressName())
                 .receiverName(address.getReceiverName())
                 .receiverPhone(address.getReceiverPhone())
                 .receiverZipcode(address.getReceiverZipcode())

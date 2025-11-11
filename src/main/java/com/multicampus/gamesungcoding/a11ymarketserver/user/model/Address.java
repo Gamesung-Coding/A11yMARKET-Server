@@ -25,6 +25,9 @@ public class Address {
     @Column(length = 16, updatable = false, nullable = false)
     private UUID userId;
 
+    @Column(length = 100)
+    private String addressName;
+
     @Column(length = 30)
     private String receiverName;
 
@@ -45,6 +48,9 @@ public class Address {
 
     // 배송지 정보 수정
     public void updateAddrInfo(AddressRequest request) {
+        if (request.getAddressName() != null) {
+            this.addressName = request.getAddressName();
+        }
         if (request.getReceiverName() != null) {
             this.receiverName = request.getReceiverName();
         }
