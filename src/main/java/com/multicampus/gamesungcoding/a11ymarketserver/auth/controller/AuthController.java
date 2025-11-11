@@ -9,17 +9,15 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/api/v1/auth/login")
+    @PostMapping("/v1/auth/login")
     public ResponseEntity<Object> login(@RequestBody LoginDTO dto, HttpSession session) {
         Users user = authService.login(dto);
         // 로그인 성공
@@ -43,7 +41,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/api/v1/auth/logout")
+    @PostMapping("/v1/auth/logout")
     @ResponseBody
     public String logout(HttpSession session) {
         session.invalidate(); // 세션 무효화

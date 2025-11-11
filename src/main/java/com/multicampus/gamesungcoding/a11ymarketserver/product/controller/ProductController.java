@@ -16,11 +16,12 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
 public class ProductController {
 
     private final ProductService productService;
 
-    @GetMapping("/api/v1/products")
+    @GetMapping("/v1/products")
     public List<ProductDTO> getProducts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean certified,

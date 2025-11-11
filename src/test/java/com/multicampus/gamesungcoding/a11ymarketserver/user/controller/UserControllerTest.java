@@ -29,7 +29,7 @@ class UserControllerTest {
         String mockUserId = "019A698A-43EA-7785-87A6-4BA7E9E58784";
         UserResponse mockResponse = UserResponse.builder()
                 .userId(UUID.fromString(mockUserId))
-                .userEmail("example1@test.com")
+                .userEmail("user1@example.com")
                 .build();
 
         given(userService.getUserInfo(UUID.fromString(mockUserId))).willReturn(mockResponse);
