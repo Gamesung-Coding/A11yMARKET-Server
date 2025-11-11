@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginErrResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.UserRespDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.service.AuthService;
 import com.multicampus.gamesungcoding.a11ymarketserver.user.model.Users;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -26,21 +25,20 @@ public class AuthController {
         // 로그인 성공
         if (user != null) {
             session.setAttribute("loginUser", user);
-            Map<String, Object> respBody = Map.of(
-                    "msg", "로그인 성공",
-                    "user", UserRespDTO.builder()
-                            .userId(user.getUserId())
-                            .userName(user.getUserName())
-                            .userEmail(user.getUserEmail())
-                            .userNickname(user.getUserNickname())
-                            .userRole(user.getUserRole())
-                            .build()
-            );
-            return ResponseEntity.ok(respBody); // 200 ok와 JSON 반환
+
+            var userResp = UserRespDTO.builder()
+                    .userId(user.getUserId())
+                    .userName(user.getUserName())
+                    .userEmail(user.getUserEmail())
+                    .userNickname(user.getUserNickname())
+                    .userRole(user.getUserRole())
+                    .build();
+
+            return ResponseEntity.ok(userResp); // 200 ok와 JSON 반환
         } else {
-            Map<String, String> errBody = Map.of(
-                    "msg", "이메일 또는 비밀번호가 올바르지 않습니다."
-            );
+            var errBody = LoginErrResponse.builder()
+                    .message("이메일 또는 비밀번호가 올바르지 않습니다.")
+                    .build();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errBody);
         }
     }
@@ -51,6 +49,4 @@ public class AuthController {
         session.invalidate(); // 세션 무효화
         return "로그아웃 성공";
     }
-
-
 }

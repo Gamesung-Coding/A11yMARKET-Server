@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginDTO {
-    private String email;
-    private String password;
+public class LoginErrResponse {
+    String message;
 }

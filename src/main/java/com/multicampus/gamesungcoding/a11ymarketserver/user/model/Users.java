@@ -17,9 +17,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(length = 16, updatable = false, nullable = false)
