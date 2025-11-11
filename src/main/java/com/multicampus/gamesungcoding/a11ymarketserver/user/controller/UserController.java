@@ -6,6 +6,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -24,15 +26,26 @@ public class UserController {
     @GetMapping("/v1/users/me")
     public ResponseEntity<UserResponse> getUserInfo(
             HttpSession session
-            // @RequestParam String userId
+            // @RequestParam String uuid
     ) {
-        UUID userId = (UUID) session.getAttribute("userId");
+        log.info("UserController getUserInfo");
+        String uuid = (String) session.getAttribute("userId");
+        log.debug("Session userId: {}", uuid);
+        UUID userId = uuid != null ? UUID.fromString(uuid) : null;
+        log.debug("Session userId: {}", userId);
 
         if (userId == null) {
+            log.info("Session userId is null");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         UserResponse response = userService.getUserInfo(userId);
+
+        if (response == null) {
+            log.info("User not found for userId: {}", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        log.info("User found: {}", response.getUserEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -43,8 +56,8 @@ public class UserController {
             //@RequestParam String uuid,
             @Valid @RequestBody UserUpdateRequest request) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
-        // UUID userId = UUID.fromString(uuid);
+        String uuid = (String) session.getAttribute("userId");
+        UUID userId = uuid != null ? UUID.fromString(uuid) : null;
 
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
