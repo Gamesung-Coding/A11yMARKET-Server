@@ -1,6 +1,8 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.PwdResetConfirmDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.PwdResetReqDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.UserRespDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.service.AuthService;
 import com.multicampus.gamesungcoding.a11ymarketserver.user.model.Users;
@@ -52,5 +54,42 @@ public class AuthController {
         return "로그아웃 성공";
     }
 
+    @PostMapping("/api/v1/auth/password/request-reset")
+    public ResponseEntity<Object> requestResetPwd(@RequestBody PwdResetReqDTO dto) {
+
+        boolean result = authService.requestResetPwd(dto);
+
+        if (!result) {
+            Map<String, String> errBody = Map.of(
+                    "msg", "사용자 정보가 일치하지 않습니다."
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errBody);
+        }
+
+        Map<String, String> respBody = Map.of(
+                "msg", "비밀번호 재설정 요청 완료. 이메일을 확인해주세요."
+        );
+
+        return ResponseEntity.ok(respBody);
+    }
+
+    @PostMapping("/api/v1/auth/password/request-confirm")
+    public ResponseEntity<Object> requestConfirmPwd(@RequestBody PwdResetConfirmDTO dto) {
+
+        boolean result = authService.confirmResetPwd(dto);
+
+        if (!result) {
+            Map<String, String> errBody = Map.of(
+                    "msg", "재설정 토큰이 유효하지 않거나 만료되었습니다."
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errBody);
+        }
+
+        Map<String, String> respBody = Map.of(
+                "msg", "비밀번호가 성공적으로 변경되었습니다."
+        );
+
+        return ResponseEntity.ok(respBody);
+    }
 
 }
