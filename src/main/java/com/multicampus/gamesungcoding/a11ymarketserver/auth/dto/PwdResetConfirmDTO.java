@@ -1,16 +1,23 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.UUID;
 
 @Getter
 @Setter
 public class PwdResetConfirmDTO {
 
     @NotBlank(message = "사용자 ID는 필수입니다.")
-    private String userId;
+    private UUID userId;
+
+    @NotBlank(message = "이메일은 필수 입력 값입니다.")
+    @Email(message = "형식에 맞는 이메일 주소여야 합니다.")
+    private String email;
 
     @NotBlank(message = "재설정 토큰은 필수입니다.")
     private String resetToken;

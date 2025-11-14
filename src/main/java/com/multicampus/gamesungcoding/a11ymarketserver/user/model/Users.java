@@ -2,10 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.user.model;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.config.id.UuidV7;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -50,6 +47,15 @@ public class Users {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    //비밀번호 재설정 관련
+    @Column(length = 20)
+    @Setter
+    private String resetToken;
+
+    @Column
+    @Setter
+    private LocalDateTime resetTokenExpireAt;
 
     // 회원 정보 수정
     public void updateUserInfo(UserUpdateRequest request) {
