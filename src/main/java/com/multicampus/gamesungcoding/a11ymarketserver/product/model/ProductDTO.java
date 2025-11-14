@@ -19,4 +19,13 @@ public class ProductDTO {
     private String productName;
     private Integer productPrice;
     private String productStatus;
+
+    public static ProductDTO fromEntity(com.multicampus.gamesungcoding.a11ymarketserver.product.model.Product entity) {
+        return ProductDTO.builder()
+                .productId(entity.getProductId())
+                .productName(entity.getProductName())
+                .productPrice(entity.getProductPrice())
+                .productStatus(entity.getProductStatus())
+                .build();
+    }
 }

@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
                         : productRepository.findFilteredProducts(search);
 
         return products.stream()
-                .map(Product::toDTO)   // 엔티티가 DTO 변환 책임 보유
+                .map(ProductDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 }

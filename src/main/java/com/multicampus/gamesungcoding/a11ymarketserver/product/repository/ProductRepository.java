@@ -7,13 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 목록/검색용 Repository.
  * - JPQL 사용: DB 컬럼명 변경에 대한 내성 확보
  * - 문자열 연결은 CONCAT 중첩으로 '%search%' 구성 (JPQL 제약)
  */
-public interface ProductRepository extends JpaRepository<Product, String>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
 
     @Query("""
             SELECT p

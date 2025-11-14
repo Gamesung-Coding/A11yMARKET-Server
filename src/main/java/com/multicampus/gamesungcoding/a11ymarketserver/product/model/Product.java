@@ -129,15 +129,5 @@ public class Product {
     public void changeStatus(String newStatus) {
         this.productStatus = newStatus;
     }
-
-    /* === Entity → DTO (DTO는 엔티티를 모름) === */
-    public ProductDTO toDTO() {
-        return ProductDTO.builder()
-                .productId(this.productId)
-                .productName(this.productName)
-                .productPrice(this.productPrice)
-                .productStatus(this.productStatus)
-                .build();
-    }
 }
 

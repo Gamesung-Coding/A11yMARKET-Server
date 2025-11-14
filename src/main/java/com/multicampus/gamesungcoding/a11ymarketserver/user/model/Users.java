@@ -72,4 +72,9 @@ public class Users {
         this.userPass = encodedPassword;
     }
 
+    // 사용자 권한 변경 메소드
+    public void changeRole(String role) {
+        this.userRole = role;
+    }
+
 }
