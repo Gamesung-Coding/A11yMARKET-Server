@@ -67,7 +67,8 @@ public class AddressController {
 
     // 기본 배송지 조회
     @GetMapping("/v1/users/me/default-address")
-    public ResponseEntity<AddressResponse> getDefaultAddress(HttpSession session) {
+    public ResponseEntity<AddressResponse> getDefaultAddress(
+            HttpSession session) {
         UUID userId = (UUID) session.getAttribute("userId");
 
         // 기본 배송지가 없을 때 204 반환
@@ -75,14 +76,16 @@ public class AddressController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
-    
+
     // 기본 배송지 변경
     @PatchMapping("/v1/users/me/default-address")
     public ResponseEntity<AddressResponse> updateDefaultAddress(
             HttpSession session,
             @Valid @RequestBody AddressRequest request) {
+        
         UUID userId = (UUID) session.getAttribute("userId");
-        AddressResponse response = addressService.updateDefaultAddress(userId, request);
+
+        AddressResponse response = addressService.setDefaultAddress(userId, request);
         return ResponseEntity.ok(response);
     }
 
