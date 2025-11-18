@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Builder
@@ -16,7 +15,7 @@ import java.util.UUID;
 public class OrderCreateReqDTO {
 
     @NotNull
-    private UUID addressId;
+    private String addressId;
 
     @NotNull
     private List<OrderItemReqDTO> orderItems;

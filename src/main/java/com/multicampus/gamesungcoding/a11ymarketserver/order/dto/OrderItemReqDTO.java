@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.UUID;
 
 @Getter
 @Builder
@@ -16,7 +15,7 @@ import java.util.UUID;
 public class OrderItemReqDTO {
 
     @NotNull
-    private UUID productId;
+    private String productId;
 
     @Min(1)
     private Integer quantity;
