@@ -1,6 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.config.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

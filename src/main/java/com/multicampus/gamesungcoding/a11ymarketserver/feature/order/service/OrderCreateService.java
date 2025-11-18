@@ -1,11 +1,11 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.address.model.Addresses;
-import com.multicampus.gamesungcoding.a11ymarketserver.address.repository.AddressRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.cart.entity.Cart;
-import com.multicampus.gamesungcoding.a11ymarketserver.cart.entity.CartItems;
-import com.multicampus.gamesungcoding.a11ymarketserver.cart.repository.CartItemRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.cart.repository.CartRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.Addresses;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderCreateReqDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderItemReqDTO;
@@ -15,9 +15,9 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orde
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.product.model.Product;
-import com.multicampus.gamesungcoding.a11ymarketserver.product.repository.ProductRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.user.repository.UserRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
