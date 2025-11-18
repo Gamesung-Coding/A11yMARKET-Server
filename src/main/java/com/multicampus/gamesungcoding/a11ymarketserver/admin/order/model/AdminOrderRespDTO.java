@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,8 +20,8 @@ public class AdminOrderRespDTO {
     private String receiverZipcode;
     private String receiverAddr1;
     private String receiverAddr2;
-    private String orderStatus;
-    private Integer totalPrice;
+    private OrderStatus orderStatus;
+    private Long totalPrice;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime createdAt;
 }
