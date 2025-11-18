@@ -1,8 +1,12 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.seller.service;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.product.model.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.product.model.ProductDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.product.repository.ProductRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.seller.model.Seller;
 import com.multicampus.gamesungcoding.a11ymarketserver.seller.model.SellerApplyRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.seller.model.SellerApplyResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.seller.model.SellerProductRegisterRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.seller.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,8 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 /**
- * [SellerServiceImpl]
- * - 판매자 비즈니스 로직 구현체
+ * 판매자 비즈니스 로직 구현체
  */
 @Service
 @RequiredArgsConstructor
@@ -20,31 +23,30 @@ import java.util.UUID;
 public class SellerServiceImpl implements SellerService {
 
     private final SellerRepository sellerRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public SellerApplyResponse applySeller(UUID userId, SellerApplyRequest request) {
 
         // 이미 판매자 신청 또는 등록 이력이 있는지 체크
         sellerRepository.findByUserId(userId).ifPresent(existing -> {
-            // TODO: 공통 예외 타입으로 변경 예정 (예: CustomBusinessException 등)
             throw new IllegalStateException("이미 판매자이거나 판매자 신청 이력이 존재합니다.");
         });
 
         // 신규 Seller 엔티티 생성
         Seller seller = Seller.builder()
-                .sellerId(UUID.randomUUID())              // PK (RAW(16) 매핑)
+                .sellerId(UUID.randomUUID())
                 .userId(userId)
                 .sellerName(request.getSellerName())
                 .businessNumber(request.getBusinessNumber())
-                .sellerGrade("NEW")                       // 기본 등급
+                .sellerGrade("NEW")                 // 기본 등급
                 .sellerIntro(request.getSellerIntro())
                 .a11yGuarantee(request.getA11yGuarantee())
-                .sellerSubmitStatus("pending")                // 기본 상태
+                .sellerSubmitStatus("pending")      // 기본 상태
                 .build();
 
         Seller saved = sellerRepository.save(seller);
 
-        // Entity → DTO 변환 (DTO는 Entity 타입을 모르게 유지)
         return SellerApplyResponse.builder()
                 .sellerId(saved.getSellerId())
                 .sellerName(saved.getSellerName())
@@ -56,5 +58,31 @@ public class SellerServiceImpl implements SellerService {
                 .submitDate(saved.getSubmitDate())
                 .approvedDate(saved.getApprovedDate())
                 .build();
+    }
+
+    @Override
+    public ProductDTO registerProduct(UUID userId, SellerProductRegisterRequest request) {
+
+        // 1) userId 로 판매자 조회
+        Seller seller = sellerRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
+
+        // 2) Product 엔티티 생성
+        Product product = Product.builder()
+                .sellerId(seller.getSellerId())
+                .categoryId(request.getCategoryId())
+                .productName(request.getProductName())
+                .productDescription(request.getProductDescription())
+                .productPrice(request.getProductPrice())
+                .productStock(request.getProductStock())
+                // 관리자 승인 대기 상태
+                .productStatus("PENDING")
+                .build();
+
+        // 3) 저장
+        Product saved = productRepository.save(product);
+
+        // 4) DTO 변환 후 반환
+        return ProductDTO.fromEntity(saved);
     }
 }
