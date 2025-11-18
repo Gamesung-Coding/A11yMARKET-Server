@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Getter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartItemDTO {
-    private UUID productID;
-    private String productName;
-    private Long price; // 현재 가격
-    private Integer quantity;
-    private Long subtotal; // price * quantity
+@Builder
+public class OrderCheckoutResponse {
+    private Long totalAmount; // 총 상품 금액
+    private Long shippingFee; // 배송비 (지금은 0)
+    private Long finalAmount; // totalAmount + shippingFee
+
+
 }

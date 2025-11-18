@@ -1,12 +1,15 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.controller;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.CheckoutInfoResponseDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderCheckoutResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderCheckRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderCreateReqDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.service.CheckoutInfoService;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.service.OrderService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.service.OrderCreateService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,19 +24,17 @@ import java.util.UUID;
 @Validated
 public class OrderController {
 
-    private final CheckoutInfoService checkoutInfoService;
+    private final OrderService checkoutInfoService;
     private final OrderCreateService orderCreateService;
 
     // 결제 준비 (결제 정보 조회)
     @PostMapping("/v1/orders/pre-check")
-    public CheckoutInfoResponseDTO preCheck(HttpSession session) {
+    public OrderCheckoutResponse preCheck(
+            @AuthenticationPrincipal Authentication authentication,
+            @Valid @RequestBody OrderCheckRequest req
+    ) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
-        if (userId == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
-        }
-
-        return checkoutInfoService.getCheckoutInfo(userId);
+        return checkoutInfoService.getCheckoutInfo(authentication.getName(), req);
     }
 
     // 주문 생성
