@@ -15,5 +15,4 @@ public interface AddressRepository extends JpaRepository<Addresses, UUID> {
 
     // 사용자 특정 배송지 조회
     Optional<Addresses> findByAddressIdAndUserId(UUID addressId, UUID userId);
-
 }

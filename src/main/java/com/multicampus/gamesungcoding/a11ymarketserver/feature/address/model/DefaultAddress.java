@@ -21,4 +21,8 @@ public class DefaultAddress {
 
     @Column(length = 16, nullable = false)
     private UUID addressId;
+
+    public void changeDefaultAddress(UUID addressId) {
+        this.addressId = addressId;
+    }
 }

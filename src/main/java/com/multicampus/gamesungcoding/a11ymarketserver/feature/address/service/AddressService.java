@@ -1,11 +1,11 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.address.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.AddressRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.AddressResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.Addresses;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.DefaultAddress;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.DefaultAddressRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +22,13 @@ public class AddressService {
 
     private final AddressRepository addressRepository;
     private final DefaultAddressRepository defaultAddressRepository;
+    private final UserRepository userRepository;
 
     // 배송지 목록 조회
-    public List<AddressResponse> getAddressList(UUID userId) {
-        return addressRepository.findByUserIdOrderByCreatedAtDesc(userId)
+    public List<AddressResponse> getAddressList(String userEmail) {
+        return addressRepository.findByUserIdOrderByCreatedAtDesc(
+                        getUserIdByEmail(userEmail)
+                )
                 .stream()
                 .map(AddressResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -33,11 +36,10 @@ public class AddressService {
 
     // 배송지 추가
     @Transactional
-    public AddressResponse insertAddress(UUID userId, AddressRequest dto) {
+    public AddressResponse insertAddress(String userEmail, AddressRequest dto) {
 
         Addresses address = Addresses.builder()
-                .addressId(UUID.randomUUID())
-                .userId(userId)
+                .userId(getUserIdByEmail(userEmail))
                 .addressName(dto.getAddressName())
                 .receiverName(dto.getReceiverName())
                 .receiverPhone(dto.getReceiverPhone())
@@ -51,8 +53,12 @@ public class AddressService {
 
     // 배송지 수정
     @Transactional
-    public AddressResponse updateAddress(UUID userId, UUID addressId, AddressRequest dto) {
-        Addresses address = addressRepository.findById(addressId)
+    public AddressResponse updateAddress(String userEmail, String addressId, AddressRequest dto) {
+        // 사용자 소유의 주소인지 확인
+        addressRepository.findByAddressIdAndUserId(UUID.fromString(addressId), getUserIdByEmail(userEmail))
+                .orElseThrow(() -> new EntityNotFoundException("Address not found for user"));
+
+        Addresses address = addressRepository.findById(UUID.fromString(addressId))
                 .orElseThrow(() -> new EntityNotFoundException("Address not found"));
 
         address.updateAddrInfo(
@@ -68,8 +74,11 @@ public class AddressService {
 
     // 배송지 삭제
     @Transactional
-    public void deleteAddress(UUID userId, UUID addressId) {
-        addressRepository.findByAddressIdAndUserId(addressId, userId)
+    public void deleteAddress(String userEmail, String addressId) {
+        addressRepository.findByAddressIdAndUserId(
+                        UUID.fromString(addressId),
+                        getUserIdByEmail(userEmail)
+                )
                 .ifPresent(addressRepository::delete);
     }
 
@@ -78,56 +87,38 @@ public class AddressService {
      */
 
     // 기본 배송지 조회
-    public Optional<AddressResponse> getDefaultAddress(UUID userId) {
-        return defaultAddressRepository.findByUserId(userId)
+    public AddressResponse getDefaultAddress(String userEmail) {
+        return defaultAddressRepository.findByUserId(getUserIdByEmail(userEmail))
                 .flatMap(defaultAddr -> addressRepository.findById(defaultAddr.getAddressId()))
-                .map(AddressResponse::fromEntity);
+                .map(AddressResponse::fromEntity)
+                .orElseThrow(() -> new DataNotFoundException("Default address not found"));
     }
 
     // 기본 배송지 변경
     @Transactional
-    public AddressResponse setDefaultAddress(UUID userId, AddressRequest request) {
+    public void setDefaultAddress(String userEmail, DefaultAddressRequest request) {
+        UUID userId = getUserIdByEmail(userEmail);
 
-        AddressResponse response;
+        // 기본 배송지 조회
+        Optional<DefaultAddress> defaultOpt =
+                defaultAddressRepository.findById(userId);
 
-        // 1. 기본 배송지 조회
-        Optional<DefaultAddress> defaultOpt = defaultAddressRepository.findByUserId(userId);
-
-        if (defaultOpt.isPresent()) { // 기본 배송지 있는 경우
-
-            DefaultAddress defaultAddress = defaultOpt.get();
-
-            // 2. addressId로 addresses 테이블에서 배송지 정보 조회
-            Addresses address = addressRepository
-                    .findByAddressIdAndUserId(defaultAddress.getAddressId(), userId)
-                    .orElseThrow(() -> new EntityNotFoundException("배송지를 찾을 수 없습니다"));
-
-            // 3. 배송지 정보 변경
-            address.updateAddrInfo(
-                    request.getAddressName(),
-                    request.getReceiverName(),
-                    request.getReceiverPhone(),
-                    request.getReceiverZipcode(),
-                    request.getReceiverAddr1(),
-                    request.getReceiverAddr2()
-            );
-
-            response = AddressResponse.fromEntity(address);
-
-        } else { // 기본 배송지 없는 경우
-            response = insertAddress(userId, request);
-
-            // 새로 등록한 배송지를 기본 배송지로 지정
-            DefaultAddress defaultAddress = DefaultAddress.builder()
+        if (defaultOpt.isPresent()) {
+            var defaultAddress = defaultOpt.get();
+            defaultAddress.changeDefaultAddress(request.getAddressId());
+        } else {
+            var defaultAddress = DefaultAddress.builder()
                     .userId(userId)
-                    .addressId(response.getAddressId())
+                    .addressId(request.getAddressId())
                     .build();
             defaultAddressRepository.save(defaultAddress);
         }
+    }
 
-        return response;
-
-
+    private UUID getUserIdByEmail(String userEmail) {
+        return userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found"))
+                .getUserId();
     }
 
 }
