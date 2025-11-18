@@ -1,7 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.seller.model;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,10 +29,4 @@ public class SellerApplyRequest {
      * 판매자 소개 문구 (선택)
      */
     private String sellerIntro;
-
-    /**
-     * 접근성 인증 여부
-     */
-    @NotNull
-    private Boolean a11yGuarantee;
 }

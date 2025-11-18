@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.seller.model;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.config.id.UuidV7;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,7 @@ public class Seller {
      * 판매자 ID (PK, RAW(16))
      */
     @Id
+    @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
     private UUID sellerId;
 
