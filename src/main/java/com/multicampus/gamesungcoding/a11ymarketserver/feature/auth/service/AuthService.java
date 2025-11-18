@@ -10,6 +10,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.service.Refres
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.JoinRequestDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.UserResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -71,7 +72,7 @@ public class AuthService {
                 .build();
     }
 
-    public void join(JoinRequestDTO dto) {
+    public UserResponse join(JoinRequestDTO dto) {
 
         // 이메일 중복 체크
         if (userRepository.existsByUserEmail(dto.getEmail())) {
@@ -90,7 +91,7 @@ public class AuthService {
                 .userPhone(dto.getPhone())
                 .userRole("USER")
                 .build();
-        userRepository.save(user);
+        return UserResponse.fromEntity(userRepository.save(user));
     }
 
     public void logout(String userEmail) {

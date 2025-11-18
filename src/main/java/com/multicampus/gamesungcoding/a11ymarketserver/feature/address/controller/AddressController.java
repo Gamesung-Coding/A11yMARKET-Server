@@ -36,7 +36,7 @@ public class AddressController {
 
     // 배송지 등록
     @PostMapping("/v1/users/me/address")
-    public ResponseEntity<URI> insertAddress(
+    public ResponseEntity<AddressResponse> insertAddress(
             @AuthenticationPrincipal Authentication authentication,
             @Valid @RequestBody AddressRequest request) {
 
@@ -45,7 +45,7 @@ public class AddressController {
 
         return ResponseEntity
                 .created(URI.create(uri))
-                .build();
+                .body(response);
     }
 
     // 배송지 정보 수정

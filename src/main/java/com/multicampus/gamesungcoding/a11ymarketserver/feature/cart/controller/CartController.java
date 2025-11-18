@@ -13,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -29,15 +28,13 @@ public class CartController {
     public ResponseEntity<CartItemListResponse> getCart(
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        List<CartItemResponse> items = cartService.getCartItems(userDetails.getUsername());
-        int total = cartService.getCartTotal(userDetails.getUsername());
-
-        CartItemListResponse body = CartItemListResponse.builder()
-                .items(items)
-                .total(total)
-                .build();
-
-        return ResponseEntity.ok(body);
+        var userEmail = userDetails.getUsername();
+        return ResponseEntity.ok(
+                new CartItemListResponse(
+                        cartService.getCartItems(userEmail),
+                        cartService.getCartTotal(userEmail)
+                )
+        );
     }
 
     // POST /api/v1/cart/items 상품 추가 기능
@@ -46,10 +43,9 @@ public class CartController {
             @Valid @RequestBody CartAddRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        CartItemResponse created = cartService.addItem(req, userDetails.getUsername());
         return ResponseEntity
-                .created(URI.create("/api/v1/cart/items/" + created.cartItemId()))
-                .body(created);
+                .created(URI.create("/api/v1/cart/me"))
+                .body(cartService.addItem(req, userDetails.getUsername()));
     }
 
     // PATCH /api/v1/cart/items/{cartItemId} 수량 조정 기능
@@ -59,11 +55,12 @@ public class CartController {
             @Valid @RequestBody CartQtyUpdateRequest body,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        CartItemResponse updated = cartService.updateQuantity(
-                UUID.fromString(cartItemId),
-                body.quantity(),
-                userDetails.getUsername());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(
+                cartService.updateQuantity(
+                        UUID.fromString(cartItemId),
+                        body.quantity(),
+                        userDetails.getUsername())
+        );
     }
 
     // DELETE /api/v1/cart/items 상품 삭제 기능

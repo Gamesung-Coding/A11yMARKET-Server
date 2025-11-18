@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -31,7 +32,8 @@ public class AuthController {
 
     @PostMapping("/v1/auth/logout")
     @ResponseBody
-    public ResponseEntity<String> logout(Authentication authentication) {
+    public ResponseEntity<String> logout(
+            @AuthenticationPrincipal Authentication authentication) {
         String userEmail = authentication.getName();
 
         authService.logout(userEmail);
@@ -39,7 +41,8 @@ public class AuthController {
     }
 
     @PostMapping("/v1/auth/refresh")
-    public ResponseEntity<JwtResponse> refreshToken(@RequestBody RefreshRequest refreshRequest) {
+    public ResponseEntity<JwtResponse> refreshToken(
+            @RequestBody RefreshRequest refreshRequest) {
 
         return ResponseEntity.ok(
                 authService.reissueToken(refreshRequest.refreshToken())
@@ -47,13 +50,12 @@ public class AuthController {
     }
 
     @PostMapping("/v1/auth/join")
-    public ResponseEntity<UserResponse> join(@RequestBody @Valid JoinRequestDTO dto) {
+    public ResponseEntity<UserResponse> join(
+            @RequestBody @Valid JoinRequestDTO dto) {
 
-        authService.join(dto);
-
-        return ResponseEntity.created(
-                URI.create("/api/v1/users/me")
-        ).build();
+        return ResponseEntity
+                .created(URI.create("/api/v1/users/me"))
+                .body(authService.join(dto));
     }
 
 
