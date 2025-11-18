@@ -1,22 +1,29 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.controller;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderRespDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service.AdminOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class AdminOrderManageController {
-    // 관리자 - 전체 주문 조회 (미구현)
+
+    private final AdminOrderService adminOrderService;
+
+    // 관리자 - 전체 주문 조회
     @GetMapping("/v1/admin/orders")
-    public ResponseEntity<String> inquireAllOrders() {
+    public ResponseEntity<List<AdminOrderRespDTO>> inquireAllOrders() {
         log.info("AdminUserManageController - inquireAllOrders");
 
-        // Placeholder for future implementation
-        return ResponseEntity.ok("All orders inquiry functionality is under development.");
+        List<AdminOrderRespDTO> orders = adminOrderService.getAllOrders();
+        return ResponseEntity.ok(orders);
     }
 
     // 관리자 - 특정 주문 조회 (미구현)
