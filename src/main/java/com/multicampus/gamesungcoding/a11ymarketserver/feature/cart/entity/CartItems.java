@@ -8,9 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartItems {
 
     @Id
@@ -25,7 +23,14 @@ public class CartItems {
     private UUID productId;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private int quantity;
+
+    @Builder
+    private CartItems(UUID cartId, UUID productId, int quantity) {
+        this.cartId = cartId;
+        this.productId = productId;
+        this.quantity = quantity;
+    }
 
     public void changeQuantity(int quantity) {
         if (quantity < 1) {

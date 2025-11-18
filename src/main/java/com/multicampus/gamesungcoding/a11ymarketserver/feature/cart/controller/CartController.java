@@ -1,13 +1,9 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.controller;
 
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartAddRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemsResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartQtyUpdateRequest;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.service.CartService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +26,13 @@ public class CartController {
 
     // GET /api/v1/cart 목록 조회 기능
     @GetMapping("/v1/cart/me")
-    public ResponseEntity<CartItemsResponse> getCart(
+    public ResponseEntity<CartItemListResponse> getCart(
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        List<CartDTO> items = cartService.getCartItems(userDetails.getUsername());
+        List<CartItemResponse> items = cartService.getCartItems(userDetails.getUsername());
         int total = cartService.getCartTotal(userDetails.getUsername());
 
-        CartItemsResponse body = CartItemsResponse.builder()
+        CartItemListResponse body = CartItemListResponse.builder()
                 .items(items)
                 .total(total)
                 .build();
@@ -46,35 +42,37 @@ public class CartController {
 
     // POST /api/v1/cart/items 상품 추가 기능
     @PostMapping("/v1/cart/items")
-    public ResponseEntity<CartDTO> addItem(
+    public ResponseEntity<CartItemResponse> addItem(
             @Valid @RequestBody CartAddRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        CartDTO created = cartService.addItem(req, userDetails.getUsername());
+        CartItemResponse created = cartService.addItem(req, userDetails.getUsername());
         return ResponseEntity
-                .created(URI.create("/api/v1/cart/items/" + created.getCartItemId()))
+                .created(URI.create("/api/v1/cart/items/" + created.cartItemId()))
                 .body(created);
     }
 
     // PATCH /api/v1/cart/items/{cartItemId} 수량 조정 기능
     @PatchMapping("/v1/cart/items/{cartItemId}")
-    public ResponseEntity<CartDTO> updateQuantity(
-            @PathVariable @NotNull String cartItemId,      // [추가] path 변수 null 불가
+    public ResponseEntity<CartItemResponse> updateQuantity(
+            @PathVariable @NotNull String cartItemId,
             @Valid @RequestBody CartQtyUpdateRequest body,
             @AuthenticationPrincipal UserDetails userDetails) {
-        CartDTO updated = cartService.updateQuantity(
+
+        CartItemResponse updated = cartService.updateQuantity(
                 UUID.fromString(cartItemId),
-                body.getQuantity(),
+                body.quantity(),
                 userDetails.getUsername());
         return ResponseEntity.ok(updated);
     }
 
-    // DELETE /api/v1/cart/items?itemIds=1,2,3 삭제 기능
+    // DELETE /api/v1/cart/items 상품 삭제 기능
     @DeleteMapping("/v1/cart/items")
     public ResponseEntity<Void> deleteItems(
-            @RequestBody @NotEmpty List<@NotNull String> itemIds,
+            @Valid @RequestBody CartItemDeleteRequest itemIds,
             @AuthenticationPrincipal UserDetails userDetails) {
+
         cartService.deleteItems(itemIds, userDetails.getUsername());
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,9 +1,10 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.service;
 
 
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemDeleteRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartAddRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartRepository;
@@ -25,10 +26,10 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
 
-    public List<CartDTO> getCartItems(String UserEmail) {
+    public List<CartItemResponse> getCartItems(String UserEmail) {
         return cartItemRepository.findByCartId(GetCartIdByUserEmail(UserEmail))
                 .stream()
-                .map(CartDTO::fromEntity)
+                .map(CartItemResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -39,25 +40,25 @@ public class CartService {
     }
 
     @Transactional
-    public CartDTO addItem(CartAddRequest req, String userEmail) {
+    public CartItemResponse addItem(CartAddRequest req, String userEmail) {
         var cartId = GetCartIdByUserEmail(userEmail);
-        CartItems cart = cartItemRepository.findByCartIdAndProductId(cartId, UUID.fromString(req.getProductId()))
+        CartItems cart = cartItemRepository.findByCartIdAndProductId(cartId, UUID.fromString(req.productId()))
                 .map(existing -> {
-                    existing.changeQuantity(existing.getQuantity() + req.getQuantity());
+                    existing.changeQuantity(existing.getQuantity() + req.quantity());
                     return existing;
                 })
                 .orElseGet(() -> CartItems.builder()
                         //.cartItemId(UUID.randomUUID())
                         .cartId(cartId)
-                        .productId(UUID.fromString(req.getProductId()))
-                        .quantity(req.getQuantity())
+                        .productId(UUID.fromString(req.productId()))
+                        .quantity(req.quantity())
                         .build()
                 );
-        return CartDTO.fromEntity(cartItemRepository.save(cart));
+        return CartItemResponse.fromEntity(cartItemRepository.save(cart));
     }
 
     @Transactional
-    public CartDTO updateQuantity(UUID cartItemId, int quantity, String userEmail) {
+    public CartItemResponse updateQuantity(UUID cartItemId, int quantity, String userEmail) {
 
         // 검증: 해당 cartItemId가 userEmail의 장바구니에 속하는지 확인
         UUID cartId = GetCartIdByUserEmail(userEmail);
@@ -71,12 +72,14 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Cart item not found: " + cartItemId));
 
         cart.changeQuantity(quantity);
-        return CartDTO.fromEntity(cartItemRepository.save(cart));
+        return CartItemResponse.fromEntity(cartItemRepository.save(cart));
     }
 
     @Transactional
-    public void deleteItems(List<String> itemIdsStr, String userEmail) {
-        var itemIds = itemIdsStr.stream()
+    public void deleteItems(CartItemDeleteRequest itemIdsStr, String userEmail) {
+        var itemIds = itemIdsStr
+                .itemIds()
+                .stream()
                 .map(UUID::fromString)
                 .toList();
 
@@ -100,8 +103,9 @@ public class CartService {
 
         return cartRepository.findByUserId(userId)
                 .map(Cart::getCartId)
-                .orElseGet(() -> cartRepository.save(Cart.builder()
-                                //.cartId(UUID.randomUUID())
+                .orElseGet(() -> cartRepository
+                        .save(Cart
+                                .builder()
                                 .userId(userId)
                                 .build())
                         .getCartId()

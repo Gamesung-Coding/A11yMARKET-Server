@@ -2,7 +2,6 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,16 +10,20 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Table(name = "carts")
 public class Cart {
     @Id
     @UuidV7
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 16, updatable = false, nullable = false)
     private UUID cartId;
 
     @Column(length = 16, updatable = false, nullable = false)
     private UUID userId;
+
+    @Builder
+    public Cart(UUID userId) {
+        this.userId = userId;
+    }
 }

@@ -1,19 +1,21 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class CartAddRequest {
-    @NotNull
-    private String productId;
+public record CartAddRequest(
+        @NotBlank(message = "product id is required")
+        String productId,
 
-    @NotNull
-    @Min(1)
-    private Integer quantity;
+        @NotNull(message = "quantity is required")
+        @Min(value = 1, message = "quantity must be at least 1")
+        Integer quantity) {
+
+    @Builder
+    public CartAddRequest(String productId, Integer quantity) {
+        this.productId = productId;
+        this.quantity = quantity;
+    }
 }
