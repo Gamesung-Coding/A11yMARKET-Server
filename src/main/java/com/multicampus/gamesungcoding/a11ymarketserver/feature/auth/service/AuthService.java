@@ -1,18 +1,23 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.service;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDuplicatedException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.dto.JwtResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.provider.JwtTokenProvider;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.service.RefreshTokenService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.JoinRequestDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.UserRespDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,31 +31,28 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
 
-    public UserRespDTO login(LoginDTO dto) {
-        String email = dto.getEmail();
-        String password = dto.getPassword();
+    public LoginResponse login(LoginDTO dto) {
 
-        var optionalUser = userRepository.findByUserEmail(email);
+        Users user = userRepository.findByUserEmail(dto.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        if (optionalUser.isEmpty()) {
-            return null;
-        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
+        );
 
-        Users user = optionalUser.get();
-
-
-        if (passwordEncoder.matches(password, user.getUserPass())) {
-            return UserRespDTO.fromEntity(user);
-        }
-
-        return null;
+        return LoginResponse.fromEntityAndTokens(
+                user,
+                jwtTokenProvider.createAccessToken(authentication),
+                refreshTokenService.createRefreshToken(authentication)
+        );
     }
 
     @Transactional
     public JwtResponse reissueToken(String refreshToken) {
-        var dbToken = refreshTokenService.verifyRefreshToken(refreshToken);
 
+        var dbToken = refreshTokenService.verifyRefreshToken(refreshToken);
         var user = userRepository.findById(dbToken.getUserId())
                 .orElseThrow(() -> new DataNotFoundException("User not found for ID: " + dbToken.getUserId()));
 
@@ -69,17 +71,17 @@ public class AuthService {
                 .build();
     }
 
-    public UserRespDTO join(JoinRequestDTO dto) {
+    public void join(JoinRequestDTO dto) {
+
         // 이메일 중복 체크
         if (userRepository.existsByUserEmail(dto.getEmail())) {
-            return null;
+            throw new DataDuplicatedException("이미 존재하는 이메일입니다.");
         }
+
         // 비밀번호 암호화
         String encodedPwd = passwordEncoder.encode(dto.getPassword());
 
         // UUID 생성
-        // UUID userId = UUID.randomUUID();
-
         Users user = Users.builder()
                 .userEmail(dto.getEmail())
                 .userPass(encodedPwd)
@@ -88,14 +90,12 @@ public class AuthService {
                 .userPhone(dto.getPhone())
                 .userRole("USER")
                 .build();
-
-        // 저장 후 반환
-        return UserRespDTO.fromEntity(userRepository.save(user));
+        userRepository.save(user);
     }
 
     public void logout(String userEmail) {
         userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("User not found for email: " + userEmail));
+                .orElseThrow(() -> new InvalidRequestException("유효하지 않은 사용자입니다."));
         refreshTokenService.deleteRefreshToken(userEmail);
     }
 }
