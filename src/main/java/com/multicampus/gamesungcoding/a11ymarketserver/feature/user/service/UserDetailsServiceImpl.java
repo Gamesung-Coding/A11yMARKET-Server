@@ -4,6 +4,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.U
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,7 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 new SimpleGrantedAuthority("ROLE_" + user.getUserRole())
         );
 
-        return new org.springframework.security.core.userdetails.User(
+        return new User(
                 user.getUserEmail(),
                 user.getUserPass(),
                 authorities

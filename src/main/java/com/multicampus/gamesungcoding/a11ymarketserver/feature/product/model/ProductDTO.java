@@ -25,7 +25,7 @@ public class ProductDTO {
                 .productId(entity.getProductId())
                 .productName(entity.getProductName())
                 .productPrice(entity.getProductPrice())
-                .productStatus(entity.getProductStatus())
+                .productStatus(entity.getProductStatus().getStatus())
                 .build();
     }
 }
