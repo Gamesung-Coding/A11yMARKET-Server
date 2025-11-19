@@ -111,6 +111,11 @@ public class OrderService {
         }
 
         order.updateTotalPrice(totalAmount);
+
+        // 주문 정보를 저장하면서 CartItems를 정리하지 않는 이유:
+        // 아직 결제가 완료되지 않은 상태이므로, 사용자가 결제를 취소하거나 수정할 수 있기 때문
+        // 결제가 완료된 후에 별도의 프로세스를 통해 CartItems를 정리하는 것이 일반적임
+        // 결제 이전에 취소하면, CartItems는 여전히 유효하며, 사용자는 다시 결제를 시도할 수 있음
         return OrderResponse.fromEntity(ordersRepository.save(order));
     }
 
