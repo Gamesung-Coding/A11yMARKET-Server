@@ -1,6 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.controller;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderRespDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service.AdminOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +19,10 @@ public class AdminOrderManageController {
 
     // 관리자 - 전체 주문 조회
     @GetMapping("/v1/admin/orders")
-    public ResponseEntity<List<AdminOrderRespDTO>> inquireAllOrders() {
+    public ResponseEntity<List<AdminOrderResponse>> inquireAllOrders() {
         log.info("AdminUserManageController - inquireAllOrders");
 
-        List<AdminOrderRespDTO> orders = adminOrderService.getAllOrders();
+        List<AdminOrderResponse> orders = adminOrderService.getAllOrders();
         return ResponseEntity.ok(orders);
     }
 
