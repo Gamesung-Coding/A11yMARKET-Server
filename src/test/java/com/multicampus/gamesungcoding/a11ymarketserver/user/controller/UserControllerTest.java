@@ -13,8 +13,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
-
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,19 +29,16 @@ class UserControllerTest {
     private UserService userService;
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "user1@example.com")
     void testGetUserEndpoint() throws Exception {
-        String mockUserId = "019A698A-43EA-7785-87A6-4BA7E9E58784";
         String mockEmail = "user1@example.com";
         UserResponse mockResponse = UserResponse.builder()
-                .userId(UUID.fromString(mockUserId))
                 .userEmail(mockEmail)
                 .build();
 
-        given(userService.getUserInfo(UUID.fromString(mockUserId))).willReturn(mockResponse);
+        given(userService.getUserInfo(mockEmail)).willReturn(mockResponse);
 
-        mockMvc.perform(get("/api/v1/users/me")
-                        .sessionAttr("userId", "019A698A-43EA-7785-87A6-4BA7E9E58784"))
+        mockMvc.perform(get("/api/v1/users/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userEmail").value(mockEmail));
     }

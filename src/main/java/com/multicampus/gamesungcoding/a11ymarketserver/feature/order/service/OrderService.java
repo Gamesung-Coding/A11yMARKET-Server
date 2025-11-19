@@ -145,7 +145,7 @@ public class OrderService {
                                         .toList()
                         )
                         .stream()
-                        // UserEmail 추출
+                        // userEmail 추출
                         .map(Users::getUserEmail)
                         // 중복 제거
                         .distinct()

@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.product.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +45,7 @@ class ProductManageControllerIntTest {
                 .productName("Product One")
                 .productDescription("Product One")
                 .productAiSummary("Product One")
-                .productStatus("PENDING")
+                .productStatus(ProductStatus.PENDING)
                 .build();
         this.mockProduct2 = Product.builder()
                 .sellerId(UUID.randomUUID())
@@ -54,7 +55,7 @@ class ProductManageControllerIntTest {
                 .productName("Product Two")
                 .productDescription("Product Two")
                 .productAiSummary("Product Two")
-                .productStatus("PENDING")
+                .productStatus(ProductStatus.PENDING)
                 .build();
         this.productRepository.save(this.mockProduct1);
         this.productRepository.save(this.mockProduct2);
@@ -75,14 +76,14 @@ class ProductManageControllerIntTest {
     void testChangeProductStatusApprove() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders
                         .patch("/api/v1/admin/products/{productId}/status", this.mockProduct1.getProductId())
-                        .param("status", "APPROVED"))
+                        .param("status", ProductStatus.APPROVED.getStatus()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("SUCCESS"));
 
         var updatedProduct = this.productRepository
                 .findById(this.mockProduct1.getProductId())
                 .orElseThrow();
-        assertThat(updatedProduct.getProductStatus().equals("APPROVED"));
+        assertThat(updatedProduct.getProductStatus().equals(ProductStatus.APPROVED));
     }
 
     @Test
@@ -98,6 +99,6 @@ class ProductManageControllerIntTest {
         var updatedProduct = this.productRepository
                 .findById(this.mockProduct2.getProductId())
                 .orElseThrow();
-        assertThat(updatedProduct.getProductStatus().equals("REJECTED"));
+        assertThat(updatedProduct.getProductStatus().equals(ProductStatus.REJECTED));
     }
 }

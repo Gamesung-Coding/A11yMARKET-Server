@@ -3,6 +3,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.product.controller
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.product.service.AdminProductManageService;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.config.SecurityConfig;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.provider.JwtTokenProvider;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,14 +51,14 @@ class ProductManageControllerTest {
     @DisplayName("상품 상태 변경 테스트")
     void testChangeProductStatus() throws Exception {
         String mockProductId = "123e4567-e89b-12d3-a456-426614174000";
-        String mockStatus = "APPROVED";
+        var mockStatus = ProductStatus.APPROVED;
 
         BDDMockito.willDoNothing()
                 .given(this.service)
                 .changeProductStatus(java.util.UUID.fromString(mockProductId), mockStatus);
 
         this.mockMvc.perform(patch("/api/v1/admin/products/{productId}/status", mockProductId)
-                        .param("status", mockStatus))
+                        .param("status", ProductStatus.APPROVED.getStatus()))
                 .andExpect(status().isOk());
     }
 }

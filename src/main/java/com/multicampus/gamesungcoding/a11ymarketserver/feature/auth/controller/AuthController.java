@@ -11,8 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -33,8 +33,8 @@ public class AuthController {
     @PostMapping("/v1/auth/logout")
     @ResponseBody
     public ResponseEntity<String> logout(
-            @AuthenticationPrincipal Authentication authentication) {
-        String userEmail = authentication.getName();
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String userEmail = userDetails.getUsername();
 
         authService.logout(userEmail);
         return ResponseEntity.ok("로그아웃 성공");
@@ -57,7 +57,5 @@ public class AuthController {
                 .created(URI.create("/api/v1/users/me"))
                 .body(authService.join(dto));
     }
-
-
 }
 
