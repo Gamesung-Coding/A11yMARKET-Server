@@ -83,8 +83,9 @@ public class Product {
     /**
      * 상태 (예: AVAILABLE, SOLD_OUT)
      */
+    @Enumerated(EnumType.STRING)
     @Column(name = "product_status", length = 50)
-    private String productStatus;
+    private ProductStatus productStatus;
 
     /**
      * 생성/수정 시각 (JPA Auditing)
@@ -126,7 +127,7 @@ public class Product {
         this.productStock = (this.productStock == null ? 0 : this.productStock) + amount;
     }
 
-    public void changeStatus(String newStatus) {
+    public void changeStatus(ProductStatus newStatus) {
         this.productStatus = newStatus;
     }
 }
