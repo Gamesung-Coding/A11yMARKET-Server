@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.common.config;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.filter.JwtAuthenticationFilter;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.CorsProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +21,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final List<String> allowedOriginPatterns;
+    private final CorsProperties corsProperties;
     private final JwtAuthenticationFilter authenticationFilter;
 
     @Bean
@@ -47,7 +46,7 @@ public class SecurityConfig {
         var cfg = new CorsConfiguration();
 
         // application.yaml 변경됨
-        cfg.setAllowedOrigins(allowedOriginPatterns);
+        cfg.setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns());
         cfg.addAllowedHeader("*");
         cfg.addAllowedMethod("*");
         cfg.setAllowCredentials(true);
@@ -59,7 +58,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(FormLoginConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)
                 .sessionManagement(session ->
