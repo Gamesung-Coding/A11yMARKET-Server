@@ -1,6 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderRespDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,23 +14,10 @@ public class AdminOrderService {
 
     private final OrdersRepository ordersRepository;
 
-    public List<AdminOrderRespDTO> getAllOrders() {
+    public List<AdminOrderResponse> getAllOrders() {
         return ordersRepository.findAll()
                 .stream()
-                .map(order -> new AdminOrderRespDTO(
-                        order.getOrderId(),
-                        order.getUserName(),
-                        order.getUserEmail(),
-                        order.getUserPhone(),
-                        order.getReceiverName(),
-                        order.getReceiverPhone(),
-                        order.getReceiverZipcode(),
-                        order.getReceiverAddr1(),
-                        order.getReceiverAddr2(),
-                        order.getOrderStatus(),
-                        order.getTotalPrice(),
-                        order.getCreatedAt()
-                ))
+                .map(AdminOrderResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 }
