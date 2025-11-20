@@ -1,6 +1,8 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDuplicatedException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -66,11 +69,11 @@ public class SellerService {
 
         // 1) userId 로 판매자 조회
         Seller seller = sellerRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new IllegalStateException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
 
-        // 판매자 승인 여부 확인
+        // 2) 판매자 승인 여부 확인
         if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
-            throw new IllegalStateException("판매자 승인 완료 후 상품 등록이 가능합니다.");
+            throw new InvalidRequestException("판매자 승인 완료 후 상품 등록이 가능합니다.");
         }
 
         // 2) Product 엔티티 생성
@@ -90,5 +93,24 @@ public class SellerService {
 
         // 3) 저장 및 DTO 변환 후 반환
         return ProductDTO.fromEntity(productRepository.save(product));
+    }
+
+    // 내 상품 목록 조회
+    @Transactional(readOnly = true)
+    public List<ProductDTO> getMyProducts(String userEmail) {
+
+        // 1) 이메일로 판매자 찾기
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        UUID sellerId = seller.getSellerId();
+
+        // 2) 판매자의 상품 목록 조회
+        List<Product> products = productRepository.findBySellerId(sellerId);
+
+        // 3) DTO 변환 후 반환
+        return products.stream()
+                .map(ProductDTO::fromEntity)
+                .toList();
     }
 }
