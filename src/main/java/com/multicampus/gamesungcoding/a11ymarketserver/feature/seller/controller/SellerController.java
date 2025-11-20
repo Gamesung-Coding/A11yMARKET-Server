@@ -13,6 +13,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 판매자 관련 API 엔드포인트
  */
@@ -50,5 +52,17 @@ public class SellerController {
 
         ProductDTO response = sellerService.registerProduct(userDetails.getUsername(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * 내 상품 목록 조회
+     * GET /api/v1/seller/products
+     */
+    @GetMapping("/v1/seller/products")
+    public ResponseEntity<List<ProductDTO>> getMyProducts(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        List<ProductDTO> products = sellerService.getMyProducts(userDetails.getUsername());
+        return ResponseEntity.ok(products);
     }
 }

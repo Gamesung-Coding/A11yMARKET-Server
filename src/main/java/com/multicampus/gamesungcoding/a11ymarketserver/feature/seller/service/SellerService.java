@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -90,5 +91,24 @@ public class SellerService {
 
         // 3) 저장 및 DTO 변환 후 반환
         return ProductDTO.fromEntity(productRepository.save(product));
+    }
+
+    // 🔹 [추가] 내 상품 목록 조회
+    @Transactional(readOnly = true)
+    public List<ProductDTO> getMyProducts(String userEmail) {
+
+        // 1) 이메일로 판매자 찾기
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new IllegalStateException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
+
+        UUID sellerId = seller.getSellerId();
+
+        // 2) 판매자의 상품 목록 조회
+        List<Product> products = productRepository.findBySellerId(sellerId);
+
+        // 3) DTO 변환 후 반환
+        return products.stream()
+                .map(ProductDTO::fromEntity)
+                .toList();
     }
 }
