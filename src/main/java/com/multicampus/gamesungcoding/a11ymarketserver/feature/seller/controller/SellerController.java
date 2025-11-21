@@ -48,6 +48,7 @@ public class SellerController {
      * POST /api/v1/seller/products
      */
     @PostMapping("/v1/seller/products")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ProductDTO> registerProduct(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid SellerProductRegisterRequest request) {
@@ -61,6 +62,7 @@ public class SellerController {
      * GET /api/v1/seller/products
      */
     @GetMapping("/v1/seller/products")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<ProductDTO>> getMyProducts(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
@@ -73,6 +75,7 @@ public class SellerController {
      * PUT /api/v1/seller/products/{productId}
      */
     @PutMapping("/v1/seller/products/{productId}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ProductDTO> updateProduct(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable UUID productId,
@@ -84,5 +87,15 @@ public class SellerController {
                 request
         );
         return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/v1/seller/products/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> deleteProduct(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID productId
+    ) {
+        sellerService.deleteProduct(userDetails.getUsername(), productId);
+        return ResponseEntity.noContent().build();
     }
 }
