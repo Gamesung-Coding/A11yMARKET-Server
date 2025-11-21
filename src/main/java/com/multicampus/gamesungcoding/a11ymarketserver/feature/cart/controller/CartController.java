@@ -6,6 +6,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.service.Cart
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,6 +40,7 @@ public class CartController {
 
     // POST /api/v1/cart/items 상품 추가 기능
     @PostMapping("/v1/cart/items")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<CartItemUpdatedResponse> addItem(
             @Valid @RequestBody CartAddRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -65,6 +67,7 @@ public class CartController {
 
     // DELETE /api/v1/cart/items 상품 삭제 기능
     @DeleteMapping("/v1/cart/items")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteItems(
             @Valid @RequestBody CartItemDeleteRequest itemIds,
             @AuthenticationPrincipal UserDetails userDetails) {

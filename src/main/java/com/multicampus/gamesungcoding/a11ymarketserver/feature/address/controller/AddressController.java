@@ -65,6 +65,7 @@ public class AddressController {
 
     // 배송지 삭제
     @DeleteMapping("/v1/users/me/address/{addressId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable String addressId) {
