@@ -5,8 +5,7 @@ import lombok.Getter;
 public enum SellerGrades {
     NEWER("NEWER"),
     REGULAR("REGULAR"),
-    TRUSTED("TRUSTED"),
-    ;
+    TRUSTED("TRUSTED");
 
     @Getter
     private final String grade;

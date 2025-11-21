@@ -14,9 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 판매자 관련 API 엔드포인트
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -24,26 +21,16 @@ public class SellerController {
 
     private final SellerService sellerService;
 
-    /**
-     * 판매자 가입 신청
-     * POST /api/v1/seller/apply
-     */
     @PostMapping("/v1/seller/apply")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<SellerApplyResponse> applySeller(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid SellerApplyRequest request) {
 
-        SellerApplyResponse response =
-                sellerService.applySeller(userDetails.getUsername(), request);
-
+        SellerApplyResponse response = sellerService.applySeller(userDetails.getUsername(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * 판매자 상품 등록 신청
-     * POST /api/v1/seller/products
-     */
     @PostMapping("/v1/seller/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ProductDTO> registerProduct(
@@ -54,65 +41,45 @@ public class SellerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * 내 상품 목록 조회
-     * GET /api/v1/seller/products
-     */
     @GetMapping("/v1/seller/products")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<ProductDTO>> getMyProducts(
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+            @AuthenticationPrincipal UserDetails userDetails) {
+
         List<ProductDTO> products = sellerService.getMyProducts(userDetails.getUsername());
         return ResponseEntity.ok(products);
     }
 
-    /**
-     * 판매자 상품 수정
-     * PUT /api/v1/seller/products/{productId}
-     */
+
     @PutMapping("/v1/seller/products/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ProductDTO> updateProduct(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable UUID productId,
-            @Valid @RequestBody SellerProductUpdateRequest request
-    ) {
-        ProductDTO result = sellerService.updateProduct(
-                userDetails.getUsername(),
-                productId,
-                request
-        );
+            @PathVariable String productId,
+            @RequestBody @Valid SellerProductUpdateRequest request) {
+
+        ProductDTO result = sellerService.updateProduct(userDetails.getUsername(), UUID.fromString(productId), request);
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * 판매자 상품 삭제
-     * DELETE /api/v1/seller/products/{productId}
-     */
     @DeleteMapping("/v1/seller/products/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteProduct(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable UUID productId
-    ) {
-        sellerService.deleteProduct(userDetails.getUsername(), productId);
+            @PathVariable String productId) {
+
+        sellerService.deleteProduct(userDetails.getUsername(), UUID.fromString(productId));
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 판매자 상품 재고 수정
-     * PATCH /api/v1/seller/products/{productId}/stock
-     * <p>
-     * 성공 시: 200 OK
-     */
     @PatchMapping("/v1/seller/products/{productId}/stock")
     @ResponseStatus(HttpStatus.OK)
-    public ProductDTO updateProductStock(
+    public ResponseEntity<ProductDTO> updateProductStock(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable UUID productId,
-            @Valid @RequestBody SellerProductStockUpdateRequest request
-    ) {
-        return sellerService.updateProductStock(userDetails.getUsername(), productId, request);
+            @PathVariable String productId,
+            @RequestBody @Valid SellerProductStockUpdateRequest request) {
+
+        ProductDTO result = sellerService.updateProductStock(userDetails.getUsername(), UUID.fromString(productId), request);
+        return ResponseEntity.ok(result);
     }
 }
