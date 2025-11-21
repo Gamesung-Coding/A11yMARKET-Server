@@ -66,10 +66,7 @@ public class AuthService {
         );
 
         String newAccessToken = jwtTokenProvider.createAccessToken(newAuthentication);
-        return JwtResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return new JwtResponse(newAccessToken, refreshToken);
     }
 
     public UserResponse join(JoinRequestDTO dto) {
