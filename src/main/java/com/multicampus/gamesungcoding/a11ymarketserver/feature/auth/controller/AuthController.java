@@ -35,9 +35,12 @@ public class AuthController {
     public ResponseEntity<String> logout(
             @AuthenticationPrincipal UserDetails userDetails) {
         String userEmail = userDetails.getUsername();
+        if (userEmail == null) {
+            return ResponseEntity.noContent().build();
+        }
 
         authService.logout(userEmail);
-        return ResponseEntity.ok("로그아웃 성공");
+        return ResponseEntity.ok("SUCCESS");
     }
 
     @PostMapping("/v1/auth/refresh")
@@ -58,4 +61,3 @@ public class AuthController {
                 .body(authService.join(dto));
     }
 }
-
