@@ -1,10 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.SellerApplyRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.SellerApplyResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.SellerProductRegisterRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.SellerProductUpdateRequest;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -89,6 +86,10 @@ public class SellerController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * 판매자 상품 삭제
+     * DELETE /api/v1/seller/products/{productId}
+     */
     @DeleteMapping("/v1/seller/products/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteProduct(
@@ -97,5 +98,21 @@ public class SellerController {
     ) {
         sellerService.deleteProduct(userDetails.getUsername(), productId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 판매자 상품 재고 수정
+     * PATCH /api/v1/seller/products/{productId}/stock
+     * <p>
+     * 성공 시: 200 OK
+     */
+    @PatchMapping("/v1/seller/products/{productId}/stock")
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDTO updateProductStock(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID productId,
+            @Valid @RequestBody SellerProductStockUpdateRequest request
+    ) {
+        return sellerService.updateProductStock(userDetails.getUsername(), productId, request);
     }
 }
