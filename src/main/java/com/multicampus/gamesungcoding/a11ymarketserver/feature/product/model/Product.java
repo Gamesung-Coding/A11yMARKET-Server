@@ -160,5 +160,12 @@ public class Product {
     public void deleteBySeller() {
         this.productStatus = ProductStatus.DELETED;
     }
+
+    /**
+     * 판매자가 자신의 상품 재고를 수정할 때 사용하는 도메인 메서드
+     */
+    public void updateStockBySeller(Integer productStock) {
+        this.productStock = productStock;
+    }
 }
 

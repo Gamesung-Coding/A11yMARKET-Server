@@ -180,4 +180,36 @@ public class SellerService {
 
         productRepository.save(product);
     }
+
+    // 상품 재고 관리
+    @Transactional
+    public ProductDTO updateProductStock(
+            String userEmail,
+            UUID productId,
+            SellerProductStockUpdateRequest request
+    ) {
+        // 1) 판매자 조회 (없으면 404)
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        // 2) 판매자 승인 여부 확인 (미승인 → 400)
+        if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
+            throw new InvalidRequestException("판매자 승인 완료 후 재고를 수정할 수 있습니다.");
+        }
+
+        // 3) 상품 조회 (없으면 404)
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
+
+        // 4) 본인 상품인지 확인 (아니면 400)
+        if (!product.getSellerId().equals(seller.getSellerId())) {
+            throw new InvalidRequestException("본인의 상품 재고만 수정할 수 있습니다.");
+        }
+
+        // 5) 재고 변경
+        product.updateStockBySeller(request.productStock());
+
+        // 6) 저장 후 DTO 반환
+        return ProductDTO.fromEntity(productRepository.save(product));
+    }
 }
