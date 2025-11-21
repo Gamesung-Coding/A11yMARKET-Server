@@ -20,10 +20,10 @@ public record SellerOrderItemResponse(
         String buyerPhone,
         LocalDateTime orderedAt
 ) {
-    public static SellerOrderItemResponse of(Orders order, OrderItems item) {
-        return new SellerOrderItemResponse(
+    public SellerOrderItemResponse(Orders order, OrderItems item) {
+        this(
                 item.getOrderItemId(),
-                item.getOrderId(),
+                order.getOrderId(),
                 item.getProductId(),
                 item.getProductName(),
                 item.getProductPrice(),

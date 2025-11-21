@@ -5,10 +5,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotF
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductStatus;
@@ -23,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +29,6 @@ public class SellerService {
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
 
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
@@ -180,57 +175,23 @@ public class SellerService {
 
     @Transactional(readOnly = true)
     public List<SellerOrderItemResponse> getReceivedOrders(String userEmail, String status) {
-        var seller = sellerRepository.findByUserEmail(userEmail)
+
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
         if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
             throw new InvalidRequestException("승인된 판매자만 주문 목록을 조회할 수 있습니다.");
         }
 
-        var sellerId = seller.getSellerId();
-
-        var products = productRepository.findBySellerId(sellerId);
-        if (products.isEmpty()) {
-            return List.of();
-        }
-
-        var productIds = products.stream()
-                .map(com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product::getProductId)
-                .toList();
-
-        List<OrderItems> orderItems;
-        if (status == null || status.isBlank()) {
-            orderItems = orderItemsRepository.findByProductIdIn(productIds);
-        } else {
-            OrderItemStatus itemStatus;
+        OrderItemStatus statusFilter = null;
+        if (status != null && !status.isBlank()) {
             try {
-                itemStatus = OrderItemStatus.valueOf(status.toUpperCase());
+                statusFilter = OrderItemStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new InvalidRequestException("유효하지 않은 주문 상태입니다.");
             }
-            orderItems = orderItemsRepository.findByProductIdInAndOrderItemStatus(productIds, itemStatus);
         }
-
-        if (orderItems.isEmpty()) {
-            return List.of();
-        }
-
-        var orderIds = orderItems.stream()
-                .map(OrderItems::getOrderId)
-                .distinct()
-                .toList();
-
-        var ordersMap = ordersRepository.findAllById(orderIds).stream()
-                .collect(Collectors.toMap(Orders::getOrderId, o -> o));
-
-        return orderItems.stream()
-                .map(item -> {
-                    var order = ordersMap.get(item.getOrderId());
-                    if (order == null) {
-                        throw new DataNotFoundException("주문 정보를 찾을 수 없습니다.");
-                    }
-                    return SellerOrderItemResponse.of(order, item);
-                })
-                .toList();
+        
+        return orderItemsRepository.findSellerReceivedOrders(userEmail, statusFilter);
     }
 }
