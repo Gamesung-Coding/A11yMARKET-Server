@@ -2,6 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.user.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.user.service.AdminUserManageService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.UserAdminDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AdminUserManageController {
 
     // 관리자 - 사용자 권한 변경
     @PatchMapping("/v1/admin/users/{userId}/permission")
-    public ResponseEntity<String> changeUserPermission(
+    public ResponseEntity<UserResponse> changeUserPermission(
             @PathVariable UUID userId,
             @RequestParam String role) {
 
