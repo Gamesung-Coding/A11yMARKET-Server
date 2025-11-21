@@ -10,6 +10,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.UserRe
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/v1/auth/logout")
-    @ResponseBody
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<String> logout(
             @AuthenticationPrincipal UserDetails userDetails) {
         String userEmail = userDetails.getUsername();
@@ -53,6 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/v1/auth/join")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<UserResponse> join(
             @RequestBody @Valid JoinRequest dto) {
 

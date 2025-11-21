@@ -25,10 +25,9 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserInfo(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        log.info("UserController getUserInfo");
         UserResponse response = userService.getUserInfo(userDetails.getUsername());
 
-        log.info("User found: {}", response.getUserEmail());
+        log.debug("User found: {}", response.getUserEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -39,10 +38,9 @@ public class UserController {
             //@RequestParam String uuid,
             @Valid @RequestBody UserUpdateRequest request) {
 
-        log.info("UserController updateUserInfo");
         UserResponse response = userService.updateUserInfo(userDetails.getUsername(), request);
 
-        log.info("User updated: {}", response.getUserEmail());
+        log.debug("User updated: {}", response.getUserEmail());
         return ResponseEntity.ok(response);
     }
 }
