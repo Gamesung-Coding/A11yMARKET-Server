@@ -16,7 +16,7 @@ SET receiver_phone = CASE
                          WHEN order_status = 'PAID_PENDING' THEN 'PENDING'
                          ELSE order_status
         END
-WHERE (LENGTH(전화번호컬럼) = 13)
+WHERE (LENGTH(receiver_phone) = 13)
    OR (order_status = 'PAID_PENDING');
 COMMIT;
 
