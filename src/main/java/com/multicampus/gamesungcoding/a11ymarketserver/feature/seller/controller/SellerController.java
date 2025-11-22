@@ -82,4 +82,14 @@ public class SellerController {
         ProductDTO result = sellerService.updateProductStock(userDetails.getUsername(), UUID.fromString(productId), request);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/v1/seller/orders")
+    public ResponseEntity<List<SellerOrderItemResponse>> getReceivedOrders(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String status) {
+
+        List<SellerOrderItemResponse> responses = sellerService.getReceivedOrders(userDetails.getUsername(), status);
+
+        return ResponseEntity.ok(responses);
+    }
 }

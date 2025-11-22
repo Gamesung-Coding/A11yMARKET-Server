@@ -4,6 +4,8 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDupl
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductStatus;
@@ -27,6 +29,7 @@ public class SellerService {
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final OrderItemsRepository orderItemsRepository;
 
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
         Users user = userRepository.findByUserEmail(userEmail)
@@ -168,5 +171,27 @@ public class SellerService {
         product.updateStockBySeller(request.productStock());
 
         return ProductDTO.fromEntity(productRepository.save(product));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SellerOrderItemResponse> getReceivedOrders(String userEmail, String status) {
+
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+            throw new InvalidRequestException("승인된 판매자만 주문 목록을 조회할 수 있습니다.");
+        }
+
+        OrderItemStatus statusFilter = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                statusFilter = OrderItemStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidRequestException("유효하지 않은 주문 상태입니다.");
+            }
+        }
+        
+        return orderItemsRepository.findSellerReceivedOrders(userEmail, statusFilter);
     }
 }
