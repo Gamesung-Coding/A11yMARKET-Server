@@ -9,20 +9,25 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminOrderService {
 
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
 
     public List<AdminOrderResponse> getAllOrders() {
+        log.debug("AdminOrderService - getAllOrders: Fetching all orders from the repository");
         return ordersRepository.findAll()
                 .stream()
                 .map(AdminOrderResponse::fromEntity)
