@@ -2,6 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,7 +19,7 @@ public record OrderDetailResponse(
         String receiverAddr2,
         String orderStatus,
         Integer totalPrice,
-        java.time.LocalDateTime createdAt,
+        LocalDateTime createdAt,
         List<OrderItemResponse> orderItems
 ) {
     public static OrderDetailResponse fromEntity(Orders order, List<com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems> items) {

@@ -30,12 +30,10 @@ public class AdminOrderManageController {
 
     // 관리자 - 특정 주문 조회
     @GetMapping("/v1/admin/orders/{orderId}")
-    public ResponseEntity<OrderDetailResponse> inquireOrderDetails(@PathVariable UUID orderId) {
+    public ResponseEntity<OrderDetailResponse> inquireOrderDetails(@PathVariable String orderId) {
         log.info("AdminUserManageController - inquireOrderDetails");
 
-        OrderDetailResponse response = adminOrderService.getOrderDetails(orderId);
-
-        return ResponseEntity.ok(response);
+        return adminOrderService.getOrderDetails(UUID.fromString(orderId));
     }
 
     // 관리자 - 주문 상태 변경 (미구현)
