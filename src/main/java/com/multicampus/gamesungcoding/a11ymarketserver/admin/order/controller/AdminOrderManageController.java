@@ -23,24 +23,21 @@ public class AdminOrderManageController {
     @GetMapping("/v1/admin/orders")
     public ResponseEntity<List<AdminOrderResponse>> inquireAllOrders() {
         List<AdminOrderResponse> orders = adminOrderService.getAllOrders();
-        log.info("AdminUserManageController - inquireAllOrders: found {} orders", orders.size());
         return ResponseEntity.ok(orders);
     }
 
     // 관리자 - 특정 주문 조회
     @GetMapping("/v1/admin/orders/{orderId}")
     public ResponseEntity<OrderDetailResponse> inquireOrderDetails(@PathVariable String orderId) {
-        log.info("AdminUserManageController - inquireOrderDetails");
-
         return adminOrderService.getOrderDetails(UUID.fromString(orderId));
     }
 
-    // 관리자 - 주문 상태 변경 (미구현)
+    // 관리자 - 주문 상태 변경
     @PatchMapping("/v1/admin/orders/{orderId}")
     public ResponseEntity<String> changeOrderStatus(@PathVariable String orderId, @RequestParam String status) {
-        log.info("AdminUserManageController - changeOrderStatus");
 
-        // Placeholder for future implementation
-        return ResponseEntity.ok("Change order status functionality is under development.");
+        adminOrderService.updateOrderStatus(UUID.fromString(orderId), status);
+
+        return ResponseEntity.noContent().build();
     }
 }
