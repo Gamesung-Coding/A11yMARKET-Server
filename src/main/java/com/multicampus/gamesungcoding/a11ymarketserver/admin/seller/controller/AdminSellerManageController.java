@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -26,13 +27,12 @@ public class AdminSellerManageController {
         return ResponseEntity.ok(pendingSellers);
     }
 
-    // 관리자 - 판매자 상태 변경 (미구현)
+    // 관리자 - 판매자 상태 변경
     @PatchMapping("/v1/admin/sellers/{sellerId}/status")
     public ResponseEntity<String> changeSellerStatus(@PathVariable String sellerId, @RequestParam String status) {
-        log.info("AdminUserManageController - changeSellerStatus");
 
-        // Placeholder for future implementation
-        return ResponseEntity.ok("Change seller status functionality is under development.");
+        adminSellerService.updateSellerStatus(UUID.fromString(sellerId), status);
+        return ResponseEntity.noContent().build();
     }
 
     // 관리자 - 판매자 정보 수정 (미구현)
