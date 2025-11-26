@@ -255,4 +255,45 @@ public class OrderService {
             order.updateOrderStatus(OrderStatus.DELIVERED);
         }
     }
+
+    // 결제 검증
+    @Transactional
+    public PaymentVerifyResponse verifyPayment(String userEmail, PaymentVerifyRequest req) {
+
+        UUID orderUuid = UUID.fromString(req.orderId());
+
+        Orders order = ordersRepository
+                .findByOrderIdAndUserEmail(orderUuid, userEmail)
+                .orElseThrow(() -> new DataNotFoundException("주문을 찾을 수 없습니다."));
+
+        if (order.getOrderStatus() == OrderStatus.PAID) {
+            throw new InvalidRequestException("이미 결제된 주문입니다.");
+        }
+
+        List<OrderItems> items = orderItemsRepository.findByOrderId(order.getOrderId());
+
+        if (items.isEmpty()) {
+            throw new InvalidRequestException("주문 상품이 없습니다.");
+        }
+
+        int expectedAmount = items.stream()
+                .filter(i -> i.getOrderItemStatus() == OrderItemStatus.ORDERED)
+                .mapToInt(i -> i.getProductPrice() * i.getProductQuantity())
+                .sum();
+
+        if (expectedAmount != req.amount()) {
+            throw new InvalidRequestException("결제 금액이 일치하지 않습니다.");
+        }
+
+        for (OrderItems item : items) {
+            if (item.getOrderItemStatus() != OrderItemStatus.ORDERED) {
+                throw new InvalidRequestException("결제할 수 없는 상품이 포함되어 있습니다.");
+            }
+            item.updateOrderItemStatus(OrderItemStatus.PAID);
+        }
+
+        order.updateOrderStatus(OrderStatus.PAID);
+
+        return PaymentVerifyResponse.success(order.getOrderId(), expectedAmount);
+    }
 }

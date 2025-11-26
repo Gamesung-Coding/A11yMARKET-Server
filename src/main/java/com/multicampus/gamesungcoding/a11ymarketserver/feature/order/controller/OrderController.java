@@ -87,4 +87,16 @@ public class OrderController {
             @RequestBody @Valid OrderConfirmRequest req) {
         orderService.confirmOrderItems(userDetails.getUsername(), orderId, req);
     }
+
+    // 결제 검증
+    @PostMapping("/v1/payments/verify")
+    public ResponseEntity<PaymentVerifyResponse> verifyPayment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid PaymentVerifyRequest req
+    ) {
+        PaymentVerifyResponse response =
+                orderService.verifyPayment(userDetails.getUsername(), req);
+
+        return ResponseEntity.ok(response);
+    }
 }
