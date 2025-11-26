@@ -117,4 +117,12 @@ public class SellerController {
         List<SellerOrderItemResponse> claims = sellerService.getOrderClaims(userDetails.getUsername());
         return ResponseEntity.ok(claims);
     }
+
+    @GetMapping("/v1/seller/dashboard")
+    public ResponseEntity<SellerDashboardResponse> getDashboard(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        SellerDashboardResponse response = sellerService.getDashboard(userDetails.getUsername());
+        return ResponseEntity.ok(response);
+    }
 }

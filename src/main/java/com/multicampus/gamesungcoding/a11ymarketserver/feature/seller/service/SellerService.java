@@ -16,6 +16,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Pro
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerSalesRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class SellerService {
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
+    private final SellerSalesRepository sellerSalesRepository;
 
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
         Users user = userRepository.findByUserEmail(userEmail)
@@ -326,4 +328,31 @@ public class SellerService {
         return orderItemsRepository.findSellerClaims(userEmail, claimStatuses);
     }
 
+    @Transactional(readOnly = true)
+    public SellerDashboardResponse getDashboard(String userEmail) {
+
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+            throw new InvalidRequestException("승인된 판매자만 대시보드를 조회할 수 있습니다.");
+        }
+
+        SellerSales sales = sellerSalesRepository.findBySellerId(seller.getSellerId())
+                .orElse(null);
+
+        int totalSales = sales != null && sales.getTotalSales() != null ? sales.getTotalSales() : 0;
+        int totalOrders = sales != null && sales.getTotalOrders() != null ? sales.getTotalOrders() : 0;
+        int totalProductsSold = sales != null && sales.getTotalProductsSold() != null ? sales.getTotalProductsSold() : 0;
+        int totalCancelled = sales != null && sales.getTotalCancelled() != null ? sales.getTotalCancelled() : 0;
+        
+        return new SellerDashboardResponse(
+                seller.getSellerId(),
+                seller.getSellerName(),
+                totalSales,
+                totalOrders,
+                totalProductsSold,
+                totalCancelled
+        );
+    }
 }
