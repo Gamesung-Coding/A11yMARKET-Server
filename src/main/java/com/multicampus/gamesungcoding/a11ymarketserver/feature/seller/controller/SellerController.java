@@ -1,15 +1,17 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.controller;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.*;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,13 +33,20 @@ public class SellerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/v1/seller/products")
+    @PostMapping(value = "/v1/seller/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ProductDTO> registerProduct(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody @Valid SellerProductRegisterRequest request) {
+            @AuthenticationPrincipal
+            UserDetails userDetails,
 
-        ProductDTO response = sellerService.registerProduct(userDetails.getUsername(), request);
+            @Valid
+            @RequestPart("data")
+            SellerProductRegisterRequest request,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images
+    ) {
+        ProductDTO response = sellerService.registerProduct(userDetails.getUsername(), request, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

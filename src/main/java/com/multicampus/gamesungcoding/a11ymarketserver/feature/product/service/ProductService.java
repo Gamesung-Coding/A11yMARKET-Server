@@ -1,7 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

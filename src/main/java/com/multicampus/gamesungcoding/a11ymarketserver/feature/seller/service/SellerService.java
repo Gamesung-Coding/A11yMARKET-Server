@@ -1,28 +1,39 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service;
 
+import com.github.f4b6a3.uuid.alt.GUID;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDuplicatedException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.S3StorageProperties;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.Product;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.model.ProductStatus;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductImages;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.*;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductImagesRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.model.*;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerGrades;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSales;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerSalesRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.model.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
+import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,12 +42,16 @@ import java.util.UUID;
 @Transactional
 public class SellerService {
 
+    private final S3Template s3Template;
+    private final S3StorageProperties s3StorageProperties;
+
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
     private final SellerSalesRepository sellerSalesRepository;
+    private final ProductImagesRepository productImagesRepository;
 
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
         Users user = userRepository.findByUserEmail(userEmail)
@@ -70,7 +85,9 @@ public class SellerService {
                 saved.getApprovedDate());
     }
 
-    public ProductDTO registerProduct(String userEmail, SellerProductRegisterRequest request) {
+    public ProductDetailResponse registerProduct(String userEmail,
+                                                 SellerProductRegisterRequest request,
+                                                 List<MultipartFile> images) {
 
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
@@ -91,6 +108,21 @@ public class SellerService {
                 .productStock(request.productStock())
                 .productStatus(ProductStatus.PENDING)
                 .build();
+
+        if (images == null || images.isEmpty()) {
+            product = productRepository.save(product);
+            return ProductDetailResponse.fromEntity(product, null, null);
+        }
+
+        for (MultipartFile image : images) {
+            String imageUrl = uploadImageToS3(image, sellerId, product.getProductId());
+            productImagesRepository.save(
+                    ProductImages.builder()
+                            .productId(product.getProductId())
+                            .imageUrl(imageUrl)
+                            .altText()
+            )
+        }
 
         return ProductDTO.fromEntity(productRepository.save(product));
     }
@@ -345,7 +377,7 @@ public class SellerService {
         int totalOrders = sales != null && sales.getTotalOrders() != null ? sales.getTotalOrders() : 0;
         int totalProductsSold = sales != null && sales.getTotalProductsSold() != null ? sales.getTotalProductsSold() : 0;
         int totalCancelled = sales != null && sales.getTotalCancelled() != null ? sales.getTotalCancelled() : 0;
-        
+
         return new SellerDashboardResponse(
                 seller.getSellerId(),
                 seller.getSellerName(),
@@ -354,5 +386,29 @@ public class SellerService {
                 totalProductsSold,
                 totalCancelled
         );
+    }
+
+    private String uploadImageToS3(MultipartFile image, UUID sellerId, UUID productId) {
+        if (image.isEmpty()) {
+            return null;
+        }
+        // 파일 위치 => /images/{sellerId}/{productId}/{생성된 UUID}.format 으로 저장
+        String folder = "images/" + sellerId + "/" + productId;
+
+        // unique한 파일명 생성
+        String originalFilename = image.getOriginalFilename();
+        UUID fileId = GUID.v7().toUUID();
+        String uniqueFileName = folder + "/" + fileId + "_" + originalFilename;
+
+        try {
+            String bucketName = s3StorageProperties.getBucket();
+            s3Template.upload(bucketName,
+                    uniqueFileName,
+                    image.getInputStream());
+
+            return "/" + bucketName + "/" + uniqueFileName;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
