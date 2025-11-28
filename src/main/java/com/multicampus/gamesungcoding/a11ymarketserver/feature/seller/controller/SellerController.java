@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class SellerController {
 
     @PostMapping(value = "/v1/seller/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ProductDTO> registerProduct(
+    public ResponseEntity<ProductDetailResponse> registerProduct(
             @AuthenticationPrincipal
             UserDetails userDetails,
 
@@ -46,7 +47,7 @@ public class SellerController {
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
-        ProductDTO response = sellerService.registerProduct(userDetails.getUsername(), request, images);
+        var response = sellerService.registerProduct(userDetails.getUsername(), request, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
