@@ -4,6 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public record ImageMetadata(
         @NotBlank String originalFileName,
-        String altTest,
+        String altText,
         Integer sequence) {
 }

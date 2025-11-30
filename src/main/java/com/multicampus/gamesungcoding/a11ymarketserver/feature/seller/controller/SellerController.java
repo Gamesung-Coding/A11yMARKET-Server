@@ -4,8 +4,11 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.Produ
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -42,11 +46,16 @@ public class SellerController {
 
             @Valid
             @RequestPart("data")
+            @Parameter(
+                    description = "Product registration data",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
             SellerProductRegisterRequest request,
 
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
+
         var response = sellerService.registerProduct(userDetails.getUsername(), request, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

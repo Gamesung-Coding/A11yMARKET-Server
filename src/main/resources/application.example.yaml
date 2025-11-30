@@ -25,7 +25,20 @@ spring:
           chat:
             options:
               model: gemini-2.5-flash
+  cloud:
+    aws:
+      region:
+        static: user-region
+      credentials:
+        access-key: "user-access-key"
+        secret-key: "user-secret-key"
+      s3:
+        endpoint: "your-bucket-endpoint"
+        path-style-access-enabled: true
 
+app:
+  s3:
+    bucket: bucket-name
 
 # Server configuration
 server:
