@@ -5,6 +5,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotF
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.DefaultAddressRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,8 @@ public class AddressService {
 
     // 배송지 목록 조회
     public List<AddressResponse> getAddressList(String userEmail) {
-        return addressRepository.findByUserIdOrderByCreatedAtDesc(
-                        getUserIdByEmail(userEmail)
+        return addressRepository.findByUserOrderByCreatedAtDesc(
+                        getUserByEmail(userEmail)
                 )
                 .stream()
                 .map(AddressResponse::fromEntity)
@@ -38,7 +39,7 @@ public class AddressService {
     public AddressResponse insertAddress(String userEmail, AddressRequest dto) {
 
         Addresses address = Addresses.builder()
-                .userId(getUserIdByEmail(userEmail))
+                .user(getUserByEmail(userEmail))
                 .addressInfo(
                         AddressInfo.builder()
                                 .addressName(dto.addressName())
@@ -58,7 +59,9 @@ public class AddressService {
     @Transactional
     public AddressResponse updateAddress(String userEmail, String addressId, AddressRequest dto) {
         // 사용자 소유의 주소인지 확인
-        addressRepository.findByAddressIdAndUserId(UUID.fromString(addressId), getUserIdByEmail(userEmail))
+        addressRepository.findByAddressIdAndUser_UserId(
+                        UUID.fromString(addressId),
+                        getUserByEmail(userEmail).getUserId())
                 .orElseThrow(() -> new DataNotFoundException("Address not found for user"));
 
         Addresses address = addressRepository.findById(UUID.fromString(addressId))
@@ -80,9 +83,9 @@ public class AddressService {
     // 배송지 삭제
     @Transactional
     public void deleteAddress(String userEmail, String addressId) {
-        addressRepository.findByAddressIdAndUserId(
+        addressRepository.findByAddressIdAndUser_UserId(
                         UUID.fromString(addressId),
-                        getUserIdByEmail(userEmail)
+                        getUserByEmail(userEmail).getUserId()
                 )
                 .ifPresent(addressRepository::delete);
     }
@@ -93,7 +96,7 @@ public class AddressService {
 
     // 기본 배송지 조회
     public AddressResponse getDefaultAddress(String userEmail) {
-        return defaultAddressRepository.findByUserId(getUserIdByEmail(userEmail))
+        return defaultAddressRepository.findByUser_UserId(getUserByEmail(userEmail).getUserId())
                 .flatMap(defaultAddr -> addressRepository.findById(defaultAddr.getAddressId()))
                 .map(AddressResponse::fromEntity)
                 .orElseThrow(() -> new DataNotFoundException("Default address not found"));
@@ -102,23 +105,22 @@ public class AddressService {
     // 기본 배송지 변경
     @Transactional
     public void setDefaultAddress(String userEmail, UUID addressId) {
-        UUID userId = getUserIdByEmail(userEmail);
+        Users user = getUserByEmail(userEmail);
 
         // 사용자의 기본 배송지 정보가 존재하는지 확인 후 업데이트 또는 생성
-        defaultAddressRepository.findById(userId)
+        defaultAddressRepository.findById(user.getUserId())
                 .ifPresentOrElse(
                         defaultAddress -> defaultAddress.changeDefaultAddress(addressId),
                         () -> defaultAddressRepository.save(DefaultAddress.builder()
-                                .userId(userId)
+                                .user(user)
                                 .addressId(addressId)
                                 .build())
                 );
     }
 
-    private UUID getUserIdByEmail(String userEmail) {
+    private Users getUserByEmail(String userEmail) {
         return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found"))
-                .getUserId();
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
 }

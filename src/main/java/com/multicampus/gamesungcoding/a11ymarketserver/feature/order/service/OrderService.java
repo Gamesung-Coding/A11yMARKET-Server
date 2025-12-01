@@ -68,12 +68,12 @@ public class OrderService {
         int shippingFee = 0;
 
         // 사용가능한 주소 조회
-        List<Addresses> addresses = addressRepository.findByUserEmail(userEmail);
+        List<Addresses> addresses = addressRepository.findByUser_UserEmail(userEmail);
         if (addresses.isEmpty()) {
             throw new DataNotFoundException("사용 가능한 배송지가 없습니다.");
         }
 
-        var defaultAddress = defaultAddressRepository.findByUserEmail(userEmail);
+        var defaultAddress = defaultAddressRepository.findByUser_UserEmail(userEmail);
 
         // 최종 반환
         return new OrderCheckoutResponse(
