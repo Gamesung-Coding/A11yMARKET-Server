@@ -15,7 +15,7 @@ public interface CartItemRepository extends JpaRepository<CartItems, UUID> {
 
     List<CartItems> findByCart_User_UserEmail(String userEmail);
 
-    List<CartItems> findAllByCart_User_UserEmail(String userEmail);
+    List<CartItems> findAllByCart(Cart cart);
 
     @Query("""
             SELECT DISTINCT ci FROM CartItems ci

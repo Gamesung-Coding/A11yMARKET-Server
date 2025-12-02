@@ -3,9 +3,9 @@ package com.multicampus.gamesungcoding.a11ymarketserver.user.service;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.service.AuthService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
@@ -39,6 +39,8 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private OrderItemsRepository orderItemsRepository;
+    @Mock
+    private SellerService sellerService;
     @Mock
     private ProductRepository productRepository;
 
@@ -102,16 +104,6 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
-
-        var item1 = OrderItems.builder()
-                .build();
-        // 완료된 주문
-        item1.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
-        var item2 = OrderItems.builder()
-                .build();
-        // 취소 처리 완료된 주문
-        item2.updateOrderItemStatus(OrderItemStatus.CANCELED);
-
         BDDMockito.when(orderItemsRepository.findAllByProduct_ProductIdIn(
                         BDDMockito.anyList()
                 ))
@@ -135,22 +127,11 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
-
-        var item1 = OrderItems.builder()
-                .build();
-        // 결제 완료되어 접수 대기 중인 주문
-        item1.updateOrderItemStatus(OrderItemStatus.PAID);
-
-        var item2 = OrderItems.builder()
-                .build();
-        // 배송 중인 주문
-        item2.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
-
-        var orderItemsList = List.of(item1, item2);
-        BDDMockito.when(orderItemsRepository.findAllByProduct_ProductIdIn(
-                        BDDMockito.anyList()
+        BDDMockito.when(orderItemsRepository.existsByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(
+                        user.getUserEmail(),
+                        OrderItemStatus.inProgressStatuses()
                 ))
-                .thenReturn(orderItemsList);
+                .thenReturn(true);
 
         var req = new UserDeleteRequest(password);
         Assertions.assertThrows(InvalidRequestException.class, () -> {

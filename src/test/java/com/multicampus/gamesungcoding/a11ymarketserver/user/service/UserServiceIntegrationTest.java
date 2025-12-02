@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.user.service;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.entity.AddressInfo;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.entity.Addresses;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository;
@@ -8,17 +9,15 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Categories;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerGrades;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
@@ -33,10 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
@@ -47,7 +43,7 @@ class UserServiceIntegrationTest {
 
     @Autowired
     private UserService userService;
-    @MockitoBean
+    @Autowired
     private AuthService authService;
 
     @Autowired
@@ -89,19 +85,19 @@ class UserServiceIntegrationTest {
                         .userName("Seller One")
                         .userRole(UserRole.SELLER)
                         .build());
-        var seller = this.sellerRepository.save(
-                Seller.builder()
-                        .user(this.mockSeller)
-                        .sellerName("Seller One")
-                        .businessNumber("123-45-67890")
-                        .sellerGrade(SellerGrades.NEWER)
-                        .a11yGuarantee(true)
-                        .sellerSubmitStatus(SellerSubmitStatus.APPROVED)
-                        .build()
-        );
+
+        var seller = Seller.builder()
+                .user(this.mockSeller)
+                .sellerName(this.mockSeller.getUserName())
+                .businessNumber("123-45-67890")
+                .sellerIntro("Hello, we are a11y market sellers.")
+                .build();
+        seller.approve();
+
+        seller = sellerRepository.save(seller);
 
         // cart 및 address가 있어도 동작하는지 테스트하기 위해 장바구니도 생성
-        this.cartRepository.save(
+        var mockCart = this.cartRepository.save(
                 Cart.builder()
                         .user(this.mockUser)
                         .build()
@@ -117,14 +113,19 @@ class UserServiceIntegrationTest {
                         .receiverAddr1("123 Main St")
                         .receiverAddr2("Apt 101")
                         .build())
+                .isDefault(true)
                 .build());
 
         // 판매자의 상품도 생성
+        var category = this.categoryRepository.save(
+                Categories.builder()
+                        .categoryName("Test Category")
+                        .build()
+        );
         this.mockProduct = this.productRepository.save(
                 Product.builder()
                         .seller(seller)
-                        .category(this.categoryRepository
-                                .getReferenceById(UUID.randomUUID()))
+                        .category(category)
                         .productPrice(25000)
                         .productStock(100)
                         .productName("Test Product")
@@ -144,15 +145,17 @@ class UserServiceIntegrationTest {
                         .receiverAddr1(address.getAddress().getReceiverAddr1())
                         .receiverAddr2(address.getAddress().getReceiverAddr2())
                         .totalPrice(50000)
-                        .orderStatus(OrderStatus.PENDING)
+                        // .orderStatus(OrderStatus.PENDING)
                         .build()
         );
-
     }
 
     @Test
     @DisplayName("회원 탈퇴: 일반 유저 - 성공")
     void deleteUser_AsRegularUser_Success() {
+        var userId = this.mockUser.getUserId();
+        var userEmail = this.mockUser.getUserEmail();
+
         var orderItem = this.orderItemsRepository.save(
                 OrderItems.builder()
                         .order(this.mockOrder)
@@ -167,20 +170,76 @@ class UserServiceIntegrationTest {
         this.userService.deleteUser(this.mockUser.getUserEmail(), req);
 
         // 사용자, 장바구니, 주소가 모두 삭제되었는지 확인
-        Assertions.assertFalse(this.userRepository
-                .findById(this.mockUser.getUserId())
-                .isPresent());
+        Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
 
-        Assertions.assertFalse(this.cartRepository
-                .findByUser(this.mockUser)
-                .isPresent());
+        Assertions.assertFalse(this.cartRepository.findByUser_UserId(userId).isPresent());
 
-        Assertions.assertEquals(0, this.addressRepository
-                .findAllByUser_UserEmail(this.mockUser.getUserEmail())
-                .size());
+        Assertions.assertEquals(
+                0,
+                this.addressRepository.findAllByUser_UserEmail(userEmail).size());
 
         // 주문 및 주문 상품은 기록이므로, 삭제되지 않아야 함
         Assertions.assertEquals(1, this.ordersRepository.count());
         Assertions.assertEquals(1, this.orderItemsRepository.count());
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴: 판매자 - 성공")
+    void deleteUser_AsSeller_Success() {
+        var userId = this.mockSeller.getUserId();
+        var userEmail = this.mockSeller.getUserEmail();
+
+        var OrderItem = this.orderItemsRepository.save(
+                OrderItems.builder()
+                        .order(this.mockOrder)
+                        .product(this.mockProduct)
+                        .productName(this.mockProduct.getProductName())
+                        .productPrice(this.mockProduct.getProductPrice())
+                        .productQuantity(2)
+                        .build());
+        OrderItem.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
+
+        var req = new UserDeleteRequest("sellerpass!");
+        this.userService.deleteUser(this.mockSeller.getUserEmail(), req);
+
+        // 사용자, 판매자가 모두 삭제되었는지 확인
+        Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
+        Assertions.assertFalse(this.sellerRepository.findByUser_UserEmail(userEmail).isPresent());
+
+        // 상품은 삭제되지 않고, 상태가 DELETED로 변경되었는지 확인
+        var deletedProduct = this.productRepository.findById(this.mockProduct.getProductId());
+        Assertions.assertTrue(deletedProduct.isPresent());
+        Assertions.assertEquals(ProductStatus.DELETED, deletedProduct.get().getProductStatus());
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴: 비밀번호 불일치 - 실패")
+    void deleteUser_PasswordMismatch_Failure() {
+        var req = new UserDeleteRequest("wrongpassword!");
+        Assertions.assertThrows(
+                InvalidRequestException.class,
+                () -> this.userService.deleteUser(this.mockUser.getUserEmail(), req)
+        );
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴: 판매자 - 상품이 접수 대기 중일 때 실패")
+    void deleteUser_SellerWithPendingOrders_Failure() {
+        // 판매자의 상품이 접수 대기 중인 상태로 설정
+        var pendingOrderItem = this.orderItemsRepository.save(
+                OrderItems.builder()
+                        .order(this.mockOrder)
+                        .product(this.mockProduct)
+                        .productName(this.mockProduct.getProductName())
+                        .productPrice(this.mockProduct.getProductPrice())
+                        .productQuantity(1)
+                        .build());
+        pendingOrderItem.updateOrderItemStatus(OrderItemStatus.PAID);
+
+        var req = new UserDeleteRequest("sellerpass!");
+        Assertions.assertThrows(
+                InvalidRequestException.class,
+                () -> this.userService.deleteUser(this.mockSeller.getUserEmail(), req)
+        );
     }
 }
