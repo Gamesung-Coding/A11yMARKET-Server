@@ -43,7 +43,7 @@ public class ProductAiSummary {
     private LocalDateTime generatedAt;
 
     @Builder
-    private ProductAiSummary(Product productId,
+    private ProductAiSummary(Product product,
                              String summaryText,
                              String usageContext,
                              String usageMethod) {

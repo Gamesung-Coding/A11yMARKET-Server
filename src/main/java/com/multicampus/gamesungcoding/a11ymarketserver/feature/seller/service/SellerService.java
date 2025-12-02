@@ -15,10 +15,8 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ImageMetadata;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductImages;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.*;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductAiSummaryRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductImagesRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
@@ -65,6 +63,7 @@ public class SellerService {
     private final ProductImagesRepository productImagesRepository;
     private final ProductAnalysisService productAnalysisService;
     private final ProductAiSummaryRepository productAiSummaryRepository;
+    private final CategoryRepository categoryRepository;
 
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
         Users user = userRepository.findByUserEmail(userEmail)
@@ -75,13 +74,13 @@ public class SellerService {
         });
 
         Seller seller = Seller.builder()
-                .userId(user.getUserId())
+                .user(user)
                 .sellerName(request.sellerName())
                 .businessNumber(request.businessNumber())
-                .sellerGrade(SellerGrades.NEWER.getGrade())
+                .sellerGrade(SellerGrades.NEWER)
                 .sellerIntro(request.sellerIntro())
                 .a11yGuarantee(false)
-                .sellerSubmitStatus(SellerSubmitStatus.PENDING.name())
+                .sellerSubmitStatus(SellerSubmitStatus.PENDING)
                 .build();
 
         Seller saved = sellerRepository.save(seller);
@@ -105,16 +104,15 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
 
-        if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품 등록이 가능합니다.");
         }
 
-        UUID sellerId = seller.getSellerId();
-        UUID categoryId = UUID.fromString(request.categoryId());
+        Categories category = categoryRepository.getReferenceById(UUID.fromString(request.categoryId()));
 
         Product product = Product.builder()
-                .sellerId(sellerId)
-                .categoryId(categoryId)
+                .seller(seller)
+                .category(category)
                 .productName(request.productName())
                 .productDescription(request.productDescription())
                 .productPrice(request.productPrice())
@@ -132,7 +130,7 @@ public class SellerService {
         List<ProductImages> savedImages = saveImageWithMetadata(
                 images,
                 request.imageMetadataList(),
-                sellerId,
+                seller.getSellerId(),
                 product.getProductId()
         );
 
@@ -158,7 +156,7 @@ public class SellerService {
 
         UUID sellerId = seller.getSellerId();
 
-        List<Product> products = productRepository.findBySellerId(sellerId);
+        List<Product> products = productRepository.findBySeller_SellerId(sellerId);
 
         return products.stream().map(ProductDTO::fromEntity).toList();
     }
@@ -169,19 +167,21 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품을 수정할 수 있습니다.");
         }
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
 
-        if (!product.getSellerId().equals(seller.getSellerId())) {
+        if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품만 수정할 수 있습니다.");
         }
 
+        Categories category = categoryRepository.getReferenceById(UUID.fromString(request.categoryId()));
+
         product.updateBySeller(
-                UUID.fromString(request.categoryId()),
+                category,
                 request.productName(),
                 request.productDescription(),
                 request.productPrice(),
@@ -197,14 +197,14 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품을 삭제할 수 있습니다.");
         }
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
 
-        if (!product.getSellerId().equals(seller.getSellerId())) {
+        if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
         }
 
@@ -219,14 +219,14 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!seller.getSellerSubmitStatus().equals(SellerSubmitStatus.APPROVED.getStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 재고를 수정할 수 있습니다.");
         }
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
 
-        if (!product.getSellerId().equals(seller.getSellerId())) {
+        if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품 재고만 수정할 수 있습니다.");
         }
 
@@ -241,7 +241,7 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 주문 목록을 조회할 수 있습니다.");
         }
 
@@ -263,14 +263,14 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 주문 상태를 변경할 수 있습니다.");
         }
 
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new DataNotFoundException("주문 정보를 찾을 수 없습니다."));
 
-        List<UUID> productIds = productRepository.findBySellerId(seller.getSellerId())
+        List<UUID> productIds = productRepository.findBySeller_SellerId(seller.getSellerId())
                 .stream()
                 .map(Product::getProductId)
                 .toList();
@@ -325,17 +325,25 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 취소/반품 처리가 가능합니다.");
         }
 
         OrderItems orderItem = orderItemsRepository.findById(orderItemId)
                 .orElseThrow(() -> new DataNotFoundException("주문 상품 정보를 찾을 수 없습니다."));
 
-        Product product = productRepository.findById(orderItem.getProductId())
-                .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
+        Product product = orderItem.getProduct();
+        if (product == null) {
+            throw new DataNotFoundException("주문한 상품 정보를 찾을 수 없습니다.");
+        }
 
-        if (!product.getSellerId().equals(seller.getSellerId())) {
+        var productSeller = product.getSeller();
+        if (productSeller == null) {
+            throw new DataNotFoundException("주문 상품의 판매자 정보를 찾을 수 없습니다.");
+        }
+
+
+        if (!productSeller.getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품 주문만 처리할 수 있습니다.");
         }
 
@@ -346,20 +354,15 @@ public class SellerService {
             throw new InvalidRequestException("요청 상태의 주문만 처리할 수 있습니다.");
         }
 
-        String action = request.action().toUpperCase();
-
-        if ("APPROVE".equals(action)) {
+        if (request.action().isApproved()) {
             if (currentStatus == OrderItemStatus.CANCEL_PENDING) {
                 orderItem.updateOrderItemStatus(OrderItemStatus.CANCELED);
             } else {
                 // 위에서 이미 걸러 냈기 때문에 else if 문은 필요하지 않음
                 orderItem.updateOrderItemStatus(OrderItemStatus.RETURNED);
             }
-        } else if ("REJECT".equals(action)) {
-
-            orderItem.updateOrderItemStatus(OrderItemStatus.ORDERED);
         } else {
-            throw new InvalidRequestException("유효하지 않은 처리 요청입니다. (APPROVE / REJECT)");
+            orderItem.updateOrderItemStatus(OrderItemStatus.SHIPPED);
         }
 
         orderItemsRepository.save(orderItem);
@@ -371,7 +374,7 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 취소/반품/교환 목록을 조회할 수 있습니다.");
         }
 
@@ -389,7 +392,7 @@ public class SellerService {
         Seller seller = sellerRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
-        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+        if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 대시보드를 조회할 수 있습니다.");
         }
 
@@ -426,7 +429,7 @@ public class SellerService {
             String imageUrl = uploadImageToS3(image, sellerId, productId);
             var savedImg = productImagesRepository.save(
                     ProductImages.builder()
-                            .productId(productId)
+                            .product(productRepository.getReferenceById(productId))
                             .imageUrl(imageUrl)
                             .altText(meta.altText())
                             .imageSequence(meta.sequence())
@@ -470,7 +473,7 @@ public class SellerService {
 
         var result = productAnalysisService.analysisProductImage(productName, productDescription, images);
         return ProductAiSummary.builder()
-                .productId(productId)
+                .product(productRepository.getReferenceById(productId))
                 .summaryText(result.summary())
                 .usageContext(result.usageContext())
                 .usageMethod(result.usageMethod())

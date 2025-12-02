@@ -112,7 +112,7 @@ public class OrderService {
                 throw new DataNotFoundException("장바구니에 담긴 상품을 찾을 수 없습니다.");
             }
 
-            ProductImages images = productImagesRepository.findByProductId(product.getProductId())
+            ProductImages images = productImagesRepository.findById(product.getProductId())
                     .orElseThrow(() -> new DataNotFoundException("상품 이미지를 찾을 수 없습니다."));
 
             int quantity = cartItem.getQuantity();

@@ -61,8 +61,8 @@ public class UserService {
             var inProgressStatuses = OrderItemStatus.inProgressStatuses();
 
             // OrderItems에서 해당 판매자의 상품이 포함된 주문이 있는지 확인
-            var products = productRepository.findByUserEmail(userEmail);
-            var orderItems = orderItemsRepository.findAllByProductIdIn(
+            var products = productRepository.findBySeller_User_UserEmail(userEmail);
+            var orderItems = orderItemsRepository.findAllByProduct_ProductIdIn(
                     products.stream().map(Product::getProductId).toList()
             );
 

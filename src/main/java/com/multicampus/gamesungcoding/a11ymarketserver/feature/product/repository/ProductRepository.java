@@ -24,20 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     List<Product> findFilteredProducts(@Param("search") String search);
 
     // 특정 판매자의 상품 전체 조회
-    List<Product> findBySellerId(UUID sellerId);
+    List<Product> findBySeller_SellerId(UUID sellerId);
 
-    @Query("""
-            SELECT p
-            FROM Product p
-            WHERE p.sellerId = (
-                SELECT s.sellerId
-                FROM Seller s
-                WHERE s.userId = (
-                    SELECT u.userId
-                    FROM Users u
-                    WHERE u.userEmail = :userEmail))
-            """)
-    List<Product> findByUserEmail(String userEmail);
+    List<Product> findBySeller_User_UserEmail(String userEmail);
 
     // certified/grade는 추후 Seller 조인 시 Specification/Join으로 확장 예정
 }

@@ -112,7 +112,7 @@ class UserServiceTest {
         // 취소 처리 완료된 주문
         item2.updateOrderItemStatus(OrderItemStatus.CANCELED);
 
-        BDDMockito.when(orderItemsRepository.findAllByProductIdIn(
+        BDDMockito.when(orderItemsRepository.findAllByProduct_ProductIdIn(
                         BDDMockito.anyList()
                 ))
                 .thenReturn(List.of());
@@ -147,7 +147,7 @@ class UserServiceTest {
         item2.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
 
         var orderItemsList = List.of(item1, item2);
-        BDDMockito.when(orderItemsRepository.findAllByProductIdIn(
+        BDDMockito.when(orderItemsRepository.findAllByProduct_ProductIdIn(
                         BDDMockito.anyList()
                 ))
                 .thenReturn(orderItemsList);

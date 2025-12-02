@@ -41,7 +41,7 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false, updatable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Seller seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,7 +54,7 @@ public class Product {
     @Column(name = "product_stock")
     private Integer productStock;
 
-    @Column(name = "product_name", length = 255, nullable = false)
+    @Column(name = "product_name", nullable = false)
     private String productName;
 
     @Column(name = "product_description", columnDefinition = "CLOB")

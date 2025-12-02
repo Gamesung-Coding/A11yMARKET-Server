@@ -1,16 +1,15 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity;
 
-import lombok.Getter;
-
 public enum SellerSubmitStatus {
-    PENDING("PENDING"),
-    APPROVED("APPROVED"),
-    REJECTED("REJECTED");
+    PENDING,
+    APPROVED,
+    REJECTED;
 
-    @Getter
-    private final String status;
+    public boolean isPending() {
+        return this == PENDING;
+    }
 
-    SellerSubmitStatus(String status) {
-        this.status = status;
+    public boolean isApproved() {
+        return this == APPROVED;
     }
 }
