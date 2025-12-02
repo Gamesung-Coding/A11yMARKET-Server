@@ -2,10 +2,9 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
@@ -46,19 +45,11 @@ public class AdminOrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(UUID orderId, String status) {
-        Orders order = ordersRepository.findById(orderId)
+    public void updateOrderItemStatus(UUID orderItemId, OrderItemStatus status) {
+        var orderItem = orderItemsRepository.findById(orderItemId)
                 .orElseThrow(() -> new DataNotFoundException("Order not found"));
 
-        OrderStatus newStatus;
-
-        try {
-            newStatus = OrderStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidRequestException("Invalid order status: " + status);
-        }
-
-        order.updateOrderStatus(newStatus);
+        orderItem.updateOrderItemStatus(status);
     }
 
 }

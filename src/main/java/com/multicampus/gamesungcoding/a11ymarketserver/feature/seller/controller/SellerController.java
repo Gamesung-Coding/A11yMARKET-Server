@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.controller;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
@@ -99,23 +100,26 @@ public class SellerController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/v1/seller/orders")
+    @GetMapping("/v1/seller/orders/items")
     public ResponseEntity<List<SellerOrderItemResponse>> getReceivedOrders(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) OrderItemStatus orderItemStatus) {
 
-        List<SellerOrderItemResponse> responses = sellerService.getReceivedOrders(userDetails.getUsername(), status);
+        var responses = sellerService.getReceivedOrders(userDetails.getUsername(), orderItemStatus);
         return ResponseEntity.ok(responses);
     }
 
-    @PatchMapping("/v1/seller/orders/{orderId}/status")
+    @PatchMapping("/v1/seller/orders/items/{orderItemId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateOrderStatus(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable String orderId,
-            @RequestBody @Valid SellerOrderStatusUpdateRequest request) {
+            @PathVariable String orderItemId,
+            @RequestBody @Valid SellerOrderItemsStatusUpdateRequest request) {
 
-        sellerService.updateOrderStatus(userDetails.getUsername(), UUID.fromString(orderId), request);
+        sellerService.updateOrderItemStatus(
+                userDetails.getUsername(),
+                UUID.fromString(orderItemId),
+                request);
         return ResponseEntity.noContent().build();
     }
 

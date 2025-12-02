@@ -3,6 +3,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.controller;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service.AdminOrderService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,11 @@ public class AdminOrderManageController {
     }
 
     // 관리자 - 주문 상태 변경
-    @PatchMapping("/v1/admin/orders/{orderId}")
-    public ResponseEntity<String> changeOrderStatus(@PathVariable String orderId, @RequestParam String status) {
+    @PatchMapping("/v1/admin/orders/items/{orderItemId}")
+    public ResponseEntity<String> changeOrderStatus(@PathVariable String orderItemId,
+                                                    @RequestParam OrderItemStatus status) {
 
-        adminOrderService.updateOrderStatus(UUID.fromString(orderId), status);
+        adminOrderService.updateOrderItemStatus(UUID.fromString(orderItemId), status);
 
         return ResponseEntity.noContent().build();
     }

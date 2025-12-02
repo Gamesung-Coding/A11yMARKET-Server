@@ -102,7 +102,7 @@ public class OrderService {
                 .receiverAddr1(address.getAddress().getReceiverAddr1())
                 .receiverAddr2(address.getAddress().getReceiverAddr2())
                 .totalPrice(0) // 초기값 설정, 실제 가격은 추후 계산
-                .orderStatus(OrderStatus.PENDING)
+                // .orderStatus(OrderStatus.PENDING)
                 .build());
 
         var cartItems = this.getCartItemsByIds(userEmail, req.orderItemIds());
@@ -246,9 +246,9 @@ public class OrderService {
                 .anyMatch(i -> i.getOrderItemStatus() != OrderItemStatus.CONFIRMED
                         && i.getOrderItemStatus() != OrderItemStatus.CANCELED);
 
-        if (!hasNotFinishedItem) {
-            order.updateOrderStatus(OrderStatus.DELIVERED);
-        }
+        // if (!hasNotFinishedItem) {
+        //     order.updateOrderItemStatus(OrderStatus.SHIPPED);
+        // }
     }
 
     // 결제 검증
@@ -261,9 +261,9 @@ public class OrderService {
                 .findByOrderIdAndUserEmail(orderUuid, userEmail)
                 .orElseThrow(() -> new DataNotFoundException("주문을 찾을 수 없습니다."));
 
-        if (order.getOrderStatus() == OrderStatus.PAID) {
-            throw new InvalidRequestException("이미 결제된 주문입니다.");
-        }
+        // if (order.getOrderStatus() == OrderStatus.PAID) {
+        //     throw new InvalidRequestException("이미 결제된 주문입니다.");
+        // }
 
         List<OrderItems> items = orderItemsRepository.findAllByOrder_OrderId(order.getOrderId());
 
@@ -287,7 +287,7 @@ public class OrderService {
             item.updateOrderItemStatus(OrderItemStatus.PAID);
         }
 
-        order.updateOrderStatus(OrderStatus.PAID);
+        // order.updateOrderItemStatus(OrderStatus.PAID);
 
         return PaymentVerifyResponse.success(order.getOrderId(), expectedAmount);
     }

@@ -2,7 +2,6 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,7 +14,7 @@ public record SellerOrderItemResponse(
         int productPrice,
         int productQuantity,
         OrderItemStatus orderItemStatus,
-        OrderStatus orderStatus,
+        // OrderStatus orderStatus,
         String buyerName,
         String buyerEmail,
         String buyerPhone,
@@ -30,7 +29,7 @@ public record SellerOrderItemResponse(
                 item.getProductPrice(),
                 item.getProductQuantity(),
                 item.getOrderItemStatus(),
-                item.getOrder().getOrderStatus(),
+                // item.getOrder().getOrderStatus(),
                 item.getOrder().getUserName(),
                 item.getOrder().getUserEmail(),
                 item.getOrder().getUserPhone(),

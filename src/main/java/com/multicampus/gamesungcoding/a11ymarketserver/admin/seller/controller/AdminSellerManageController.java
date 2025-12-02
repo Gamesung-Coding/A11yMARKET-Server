@@ -3,6 +3,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.controller;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.model.AdminSellerUpdateRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.service.AdminSellerService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerApplyResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,8 @@ public class AdminSellerManageController {
     // 관리자 - 판매자 상태 변경
     @PatchMapping("/v1/admin/sellers/{sellerId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<String> changeSellerStatus(@PathVariable String sellerId, @RequestParam String status) {
+    public ResponseEntity<String> changeSellerStatus(@PathVariable String sellerId,
+                                                     @RequestParam SellerSubmitStatus status) {
 
         adminSellerService.updateSellerStatus(UUID.fromString(sellerId), status);
         return ResponseEntity.noContent().build();

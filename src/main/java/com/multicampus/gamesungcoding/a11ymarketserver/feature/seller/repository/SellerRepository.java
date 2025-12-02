@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface SellerRepository extends JpaRepository<Seller, UUID> {
 
-    Optional<Seller> findByUser_UserId(UUID userId);
-
     Optional<Seller> findByUser_UserEmail(String userEmail);
 
     // sellerSubmitStatus가 pending인 만매자 조회
     List<Seller> findAllBySellerSubmitStatus(SellerSubmitStatus status);
+
+    boolean existsByUser_UserId(UUID userId);
 }

@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -67,6 +68,7 @@ public class Seller {
     public void approve() {
         this.sellerSubmitStatus = SellerSubmitStatus.APPROVED;
         this.approvedDate = LocalDateTime.now();
+        this.user.changeRole(UserRole.SELLER);
     }
 
     public void reject() {
