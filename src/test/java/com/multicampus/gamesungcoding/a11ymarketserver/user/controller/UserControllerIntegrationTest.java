@@ -1,6 +1,6 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.user.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.user.controller;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.entity.AddressInfo;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.entity.Addresses;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository;
@@ -22,43 +22,52 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDele
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service.UserService;
-import org.junit.jupiter.api.Assertions;
+import jakarta.transaction.Transactional;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
-class UserServiceIntegrationTest {
+class UserControllerIntegrationTest {
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserService userService;
-
+    private AddressRepository addressRepository;
     @Autowired
-    private UserRepository userRepository;
+    private SellerRepository sellerRepository;
     @Autowired
     private CartRepository cartRepository;
     @Autowired
-    private AddressRepository addressRepository;
-    @Autowired
     private OrdersRepository ordersRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private OrderItemsRepository orderItemsRepository;
     @Autowired
     private ProductRepository productRepository;
-    @Autowired
-    private SellerRepository sellerRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
+
+    private final String mockUserEmail = "user1@example.com";
+    private final String mockSellerEmail = "seller@example.com";
 
     private Product mockProduct;
     private Orders mockOrder;
@@ -148,95 +157,95 @@ class UserServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴: 일반 유저 - 성공")
-    void deleteUser_AsRegularUser_Success() {
-        var userId = this.mockUser.getUserId();
-        var userEmail = this.mockUser.getUserEmail();
-
-        var orderItem = this.orderItemsRepository.save(
-                OrderItems.builder()
-                        .order(this.mockOrder)
-                        .product(this.mockProduct)
-                        .productName(this.mockProduct.getProductName())
-                        .productPrice(this.mockProduct.getProductPrice())
-                        .productQuantity(2)
-                        .build());
-        orderItem.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
-
-        var req = new UserDeleteRequest("password123!");
-        this.userService.deleteUser(this.mockUser.getUserEmail(), req);
-
-        // 사용자, 장바구니, 주소가 모두 삭제되었는지 확인
-        Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
-
-        Assertions.assertFalse(this.cartRepository.findByUser_UserId(userId).isPresent());
-
-        Assertions.assertEquals(
-                0,
-                this.addressRepository.findAllByUser_UserEmail(userEmail).size());
-
-        // 주문 및 주문 상품은 기록이므로, 삭제되지 않아야 함
-        Assertions.assertEquals(1, this.ordersRepository.count());
-        Assertions.assertEquals(1, this.orderItemsRepository.count());
-    }
-
-    @Test
-    @DisplayName("회원 탈퇴: 판매자 - 성공")
-    void deleteUser_AsSeller_Success() {
-        var userId = this.mockSeller.getUserId();
-        var userEmail = this.mockSeller.getUserEmail();
-
-        var OrderItem = this.orderItemsRepository.save(
-                OrderItems.builder()
-                        .order(this.mockOrder)
-                        .product(this.mockProduct)
-                        .productName(this.mockProduct.getProductName())
-                        .productPrice(this.mockProduct.getProductPrice())
-                        .productQuantity(2)
-                        .build());
-        OrderItem.updateOrderItemStatus(OrderItemStatus.CONFIRMED);
-
-        var req = new UserDeleteRequest("sellerpass!");
-        this.userService.deleteUser(this.mockSeller.getUserEmail(), req);
-
-        // 사용자, 판매자가 모두 삭제되었는지 확인
-        Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
-        Assertions.assertFalse(this.sellerRepository.findByUser_UserEmail(userEmail).isPresent());
-
-        // 상품은 삭제되지 않고, 상태가 DELETED로 변경되었는지 확인
-        var deletedProduct = this.productRepository.findById(this.mockProduct.getProductId());
-        Assertions.assertTrue(deletedProduct.isPresent());
-        Assertions.assertEquals(ProductStatus.DELETED, deletedProduct.get().getProductStatus());
-    }
-
-    @Test
-    @DisplayName("회원 탈퇴: 비밀번호 불일치 - 실패")
-    void deleteUser_PasswordMismatch_Failure() {
-        var req = new UserDeleteRequest("wrongpassword!");
-        Assertions.assertThrows(
-                InvalidRequestException.class,
-                () -> this.userService.deleteUser(this.mockUser.getUserEmail(), req)
+    @DisplayName("회원 탈퇴 통합 테스트: 일반 유저 - 성공 케이스")
+    @WithMockUser(username = mockUserEmail, roles = "USER")
+    void deleteUser_AsNormalUser_Success() throws Exception {
+        var deleteRequest = new UserDeleteRequest(
+                "password123!"
         );
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/api/v1/users/me")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(deleteRequest)))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+        // 삭제 여부 검증
+        var deletedUser = this.userRepository.findByUserEmail(this.mockUser.getUserEmail());
+        Assertions.assertThat(deletedUser).isEmpty();
     }
 
     @Test
-    @DisplayName("회원 탈퇴: 판매자 - 상품이 접수 대기 중일 때 실패")
-    void deleteUser_SellerWithPendingOrders_Failure() {
-        // 판매자의 상품이 접수 대기 중인 상태로 설정
-        var pendingOrderItem = this.orderItemsRepository.save(
-                OrderItems.builder()
-                        .order(this.mockOrder)
-                        .product(this.mockProduct)
-                        .productName(this.mockProduct.getProductName())
-                        .productPrice(this.mockProduct.getProductPrice())
-                        .productQuantity(1)
-                        .build());
-        pendingOrderItem.updateOrderItemStatus(OrderItemStatus.PAID);
-
-        var req = new UserDeleteRequest("sellerpass!");
-        Assertions.assertThrows(
-                InvalidRequestException.class,
-                () -> this.userService.deleteUser(this.mockSeller.getUserEmail(), req)
+    @DisplayName("회원 탈퇴 통합 테스트: 일반 유저 - 실패 케이스 (잘못된 비밀번호)")
+    @WithMockUser(username = mockUserEmail, roles = "USER")
+    void deleteUser_AsNormalUser_Fail_WrongPassword() throws Exception {
+        var deleteRequest = new UserDeleteRequest(
+                "wrongpassword!"
         );
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/api/v1/users/me")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(deleteRequest)))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // 삭제 여부 검증
+        var existingUser = this.userRepository.findByUserEmail(this.mockUser.getUserEmail());
+        Assertions.assertThat(existingUser).isPresent();
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 통합 테스트: 판매자 유저 - 성공 케이스")
+    @WithMockUser(username = mockSellerEmail, roles = "SELLER")
+    void deleteUser_AsSeller_Success() throws Exception {
+        var deleteRequest = new UserDeleteRequest(
+                "sellerpass!"
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/api/v1/users/me")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(deleteRequest)))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+        // 삭제 여부 검증
+        var deletedUser = this.userRepository.findByUserEmail(this.mockSeller.getUserEmail());
+        Assertions.assertThat(deletedUser).isEmpty();
+
+        // 판매자 정보도 삭제되었는지 확인
+        var deletedSeller = this.sellerRepository.findByUser_UserEmail(this.mockSeller.getUserEmail());
+        Assertions.assertThat(deletedSeller).isEmpty();
+
+        // 상품 정보는 논리 삭제 되었는지 확인
+        var products = this.productRepository.findAllBySeller_User_UserEmail(this.mockSeller.getUserEmail());
+        for (var product : products) {
+            Assertions.assertThat(product.getProductStatus()).isEqualTo(ProductStatus.DELETED);
+        }
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 통합 테스트: 판매자 유저 - 실패 케이스 (진행 중인 주문 존재)")
+    @WithMockUser(username = mockSellerEmail, roles = "SELLER")
+    void deleteUser_AsSeller_Fail_OngoingOrders() throws Exception {
+        // 주문 항목 생성 (진행 중인 주문 상태로 설정)
+        var orderItem = OrderItems.builder()
+                .order(this.mockOrder)
+                .product(this.mockProduct)
+                .productName("Test Product")
+                .productQuantity(2)
+                .productPrice(25000)
+                .build();
+        orderItem.updateOrderItemStatus(OrderItemStatus.PAID);
+        this.orderItemsRepository.save(orderItem);
+
+        var deleteRequest = new UserDeleteRequest(
+                "sellerpass!"
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/api/v1/users/me")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(deleteRequest)))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 }

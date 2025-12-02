@@ -22,7 +22,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,9 +84,7 @@ class UserServiceTest {
         var req = new UserDeleteRequest(
                 wrongPass);
 
-        Assertions.assertThrows(InvalidRequestException.class, () -> {
-            userService.deleteUser(email, req);
-        });
+        Assertions.assertThrows(InvalidRequestException.class, () -> userService.deleteUser(email, req));
     }
 
     @Test
@@ -104,10 +101,7 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
-        BDDMockito.when(orderItemsRepository.findAllByProduct_ProductIdIn(
-                        BDDMockito.anyList()
-                ))
-                .thenReturn(List.of());
+
         var req = new UserDeleteRequest(password);
         userService.deleteUser(email, req);
         Mockito.verify(userRepository).delete(user);
@@ -134,8 +128,6 @@ class UserServiceTest {
                 .thenReturn(true);
 
         var req = new UserDeleteRequest(password);
-        Assertions.assertThrows(InvalidRequestException.class, () -> {
-            userService.deleteUser(email, req);
-        });
+        Assertions.assertThrows(InvalidRequestException.class, () -> userService.deleteUser(email, req));
     }
 }
