@@ -53,6 +53,7 @@ public class ProductAiSummary {
                              String usageContext,
                              String usageMethod) {
 
+        this.product = product;
         this.summaryText = summaryText;
         this.usageContext = usageContext;
         this.usageMethod = usageMethod;

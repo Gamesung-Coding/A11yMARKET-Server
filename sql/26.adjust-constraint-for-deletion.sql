@@ -27,6 +27,8 @@ ALTER TABLE sellers
             ON DELETE CASCADE;
 
 ALTER TABLE products DROP CONSTRAINT fk_seller;
+ALTER TABLE products MODIFY
+   seller_id null;
 ALTER TABLE products
    ADD CONSTRAINT fk_seller
       FOREIGN KEY ( seller_id )
