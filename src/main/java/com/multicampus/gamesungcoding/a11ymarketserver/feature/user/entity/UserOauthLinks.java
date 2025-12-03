@@ -25,7 +25,7 @@ public class UserOauthLinks {
     @Column(length = 16, nullable = false, updatable = false)
     private UUID userOauthLinkId;
 
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", unique = true)
     @OneToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Users user;
@@ -47,5 +47,9 @@ public class UserOauthLinks {
         this.user = user;
         this.oauthProvider = oauthProvider;
         this.oauthProviderId = oauthProviderId;
+    }
+
+    public void updateUser(Users user) {
+        this.user = user;
     }
 }

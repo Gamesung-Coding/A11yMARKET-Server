@@ -3,9 +3,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.common.oauth;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.provider.JwtTokenProvider;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.OAuth2Properties;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserOauthLinks;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +22,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private final UserOauthLinksRepository userOauthLinksRepository;
     private final OAuth2Properties oAuth2Properties;
 
@@ -34,34 +31,21 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        @SuppressWarnings("unchecked") Map<String, Object> kakaoAccount =
-                (Map<String, Object>) attributes.get("kakao_account");
-        @SuppressWarnings("unchecked") Map<String, Object> profile =
-                (Map<String, Object>) kakaoAccount.get("profile");
-
         Long kakaoId = (Long) attributes.get("id");
-        String nickname = (String) profile.get("nickname");
 
         var oauthLink = userOauthLinksRepository.findByOauthProviderId(String.valueOf(kakaoId))
-                .orElseGet(() -> {
-                    var user = userRepository.save(
-                            Users.builder()
-                                    .userNickname(nickname)
-                                    .build());
-
-                    return userOauthLinksRepository.save(
-                            UserOauthLinks.builder()
-                                    .user(user)
-                                    .oauthProvider("KAKAO")
-                                    .oauthProviderId(String.valueOf(kakaoId))
-                                    .build());
-                });
+                .orElseGet(() -> userOauthLinksRepository.save(
+                        UserOauthLinks.builder()
+                                .oauthProvider("KAKAO")
+                                .oauthProviderId(String.valueOf(kakaoId))
+                                .build())
+                );
 
         var user = oauthLink.getUser();
         String targetUrl;
 
-        if (user.getUserName() == null || user.getUserPhone() == null) {
-            String tempJwt = jwtTokenProvider.createTemporaryAccessToken(user.getUserId());
+        if (user == null) {
+            String tempJwt = jwtTokenProvider.createTemporaryAccessToken(oauthLink.getUserOauthLinkId());
             targetUrl = UriComponentsBuilder.fromUriString(oAuth2Properties.getSignupUri())
                     .queryParam("temp_token", tempJwt)
                     .build()
