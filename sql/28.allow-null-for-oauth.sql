@@ -1,0 +1,2 @@
+ALTER TABLE users MODIFY
+   user_name VARCHAR(30) NULL;
