@@ -1,10 +1,10 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderSearchRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service.AdminOrderService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +23,8 @@ public class AdminOrderManageController {
 
     // 관리자 - 전체 주문 조회
     @GetMapping("/v1/admin/orders")
-    public ResponseEntity<List<AdminOrderResponse>> inquireAllOrders(
-            @RequestParam(required = false) String searchType,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
-        List<AdminOrderResponse> orders = adminOrderService.getOrders(
-                searchType, keyword, status, startDate, endDate
-        );
+    public ResponseEntity<List<AdminOrderResponse>> inquireAllOrders(AdminOrderSearchRequest request) {
+        List<AdminOrderResponse> orders = adminOrderService.getOrders(request);
         return ResponseEntity.ok(orders);
     }
 
