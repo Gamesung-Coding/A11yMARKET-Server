@@ -72,6 +72,7 @@ public class SecurityConfig {
                                 "/api/*/auth/check/**",
                                 "/api/*/auth/refresh",
                                 "/api/*/auth/oauth2/code/kakao",
+                                "/api/*/categories/**",
                                 "/api/*/products/**",
                                 "/api/*/main/**",
                                 "/swagger-ui.html",
@@ -96,7 +97,7 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \""
-                                                       + authException.getMessage() + "\"}");
+                                    + authException.getMessage() + "\"}");
                         })
                 )
                 .oauth2Login(oauth2 -> oauth2

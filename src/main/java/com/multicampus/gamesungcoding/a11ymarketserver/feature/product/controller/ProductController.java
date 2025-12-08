@@ -21,9 +21,10 @@ public class ProductController {
     public ResponseEntity<List<ProductResponse>> getProducts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean certified,
-            @RequestParam(required = false) String grade) {
+            @RequestParam(required = false) String grade,
+            @RequestParam(required = false) String categoryId) {
         return ResponseEntity.ok(
-                productService.getProducts(search, certified, grade));
+                productService.getProducts(search, certified, grade, categoryId));
     }
 
     @GetMapping("/v1/products/{productId}")
