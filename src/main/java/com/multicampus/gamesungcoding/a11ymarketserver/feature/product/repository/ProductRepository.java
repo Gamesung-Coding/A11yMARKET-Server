@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     Page<Product> findBySeller_SellerId(UUID sellerId, Pageable pageable);
 
     List<Product> findAllBySeller_User_UserEmail(String userEmail);
+
+    int countByProductStatus(ProductStatus productStatus);
 }

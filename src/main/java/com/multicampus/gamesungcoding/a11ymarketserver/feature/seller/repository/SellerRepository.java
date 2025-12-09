@@ -16,4 +16,6 @@ public interface SellerRepository extends JpaRepository<Seller, UUID> {
     List<Seller> findAllBySellerSubmitStatus(SellerSubmitStatus status);
 
     boolean existsByUser_UserId(UUID userId);
+
+    int countBySellerSubmitStatus(SellerSubmitStatus status);
 }
