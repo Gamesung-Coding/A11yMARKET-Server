@@ -4,6 +4,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Pr
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -21,6 +22,7 @@ public class ProductDTO {
     private String productName;
     private Integer productPrice;
     private ProductStatus productStatus;
+    private LocalDateTime submitDate;
 
     public static ProductDTO fromEntity(Product entity) {
         return ProductDTO.builder()
@@ -28,6 +30,7 @@ public class ProductDTO {
                 .productName(entity.getProductName())
                 .productPrice(entity.getProductPrice())
                 .productStatus(entity.getProductStatus())
+                .submitDate(entity.getSubmitDate())
                 .build();
     }
 }

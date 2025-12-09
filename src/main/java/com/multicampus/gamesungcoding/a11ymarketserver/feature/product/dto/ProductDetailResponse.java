@@ -7,6 +7,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Pr
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerGrades;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public record ProductDetailResponse(UUID productId,
                                     String categoryName,
                                     String summaryText,
                                     String usageContext,
+                                    LocalDateTime submitDate,
                                     String usageMethod) {
 
     public static ProductDetailResponse fromEntity(Product product,
@@ -63,6 +65,7 @@ public record ProductDetailResponse(UUID productId,
                 category.getCategoryName(),
                 summary.getSummaryText(),
                 summary.getUsageContext(),
+                product.getSubmitDate(),
                 summary.getUsageMethod()
         );
     }

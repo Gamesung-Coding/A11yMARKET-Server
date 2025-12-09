@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,6 +90,7 @@ public class SellerProductControllerTest {
                 "Category Name",
                 "summary",
                 "context",
+                LocalDateTime.now(),
                 "method of use");
         BDDMockito.when(sellerService.registerProduct(BDDMockito.anyString(), BDDMockito.any(), BDDMockito.any()))
                 .thenReturn(respDto);
