@@ -133,7 +133,8 @@ public class Product {
             String productName,
             String productDescription,
             Integer productPrice,
-            Integer productStock) {
+            Integer productStock,
+            ProductStatus productStatus) {
 
         this.category = category;
         this.productName = productName;
@@ -141,8 +142,13 @@ public class Product {
         this.productPrice = productPrice;
         this.productStock = productStock;
 
-        // 상품 수정 시 관리자 승인 필요 → pending 상태로 전환
-        this.productStatus = ProductStatus.PENDING;
+        if (productStatus.equals(ProductStatus.APPROVED)) {
+            // 상품 수정 시 관리자 승인 필요 → pending 상태로 전환
+            this.productStatus = ProductStatus.PENDING;
+        } else {
+            this.productStatus = productStatus;
+        }
+
     }
 
     /**

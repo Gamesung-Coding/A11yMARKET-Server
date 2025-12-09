@@ -4,6 +4,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.DailyRe
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductInquireResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerDashboardService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
@@ -65,21 +66,39 @@ public class SellerController {
     }
 
     @GetMapping("/v1/seller/products")
-    public ResponseEntity<List<ProductDTO>> getMyProducts(
-            @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<ProductInquireResponse>> getMyProducts(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @ModelAttribute SellerInquireProductRequest req) {
 
-        List<ProductDTO> products = sellerService.getMyProducts(userDetails.getUsername());
+        var products = sellerService.getMyProducts(userDetails.getUsername(), req);
         return ResponseEntity.ok(products);
     }
 
 
-    @PutMapping("/v1/seller/products/{productId}")
+    @PutMapping(path = "/v1/seller/products/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductDTO> updateProduct(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable String productId,
-            @RequestBody @Valid SellerProductUpdateRequest request) {
+            @AuthenticationPrincipal
+            UserDetails userDetails,
 
-        ProductDTO result = sellerService.updateProduct(userDetails.getUsername(), UUID.fromString(productId), request);
+            @PathVariable
+            String productId,
+
+            @Valid
+            @RequestPart("data")
+            @Parameter(
+                    description = "Product registration data",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+            SellerProductUpdateRequest request,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images) {
+
+        ProductDTO result = sellerService.updateProduct(
+                userDetails.getUsername(),
+                UUID.fromString(productId),
+                request,
+                images);
         return ResponseEntity.ok(result);
     }
 

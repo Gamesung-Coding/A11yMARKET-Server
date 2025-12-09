@@ -9,9 +9,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.S3Stora
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ImageMetadata;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductAiSummaryRepository;
@@ -26,15 +24,13 @@ import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service.Produ
 import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -139,20 +135,25 @@ public class SellerService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductDTO> getMyProducts(String userEmail) {
+    public List<ProductInquireResponse> getMyProducts(String userEmail, SellerInquireProductRequest req) {
 
         Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
 
         UUID sellerId = seller.getSellerId();
 
-        List<Product> products = productRepository.findBySeller_SellerId(sellerId);
+        var pageable = PageRequest.of(req.page(), req.size());
 
-        return products.stream().map(ProductDTO::fromEntity).toList();
+        var products = productRepository.findBySeller_SellerId(sellerId, pageable);
+
+        return products.map(ProductInquireResponse::fromEntity).toList();
     }
 
     @Transactional
-    public ProductDTO updateProduct(String userEmail, UUID productId, SellerProductUpdateRequest request) {
+    public ProductDTO updateProduct(String userEmail,
+                                    UUID productId,
+                                    SellerProductUpdateRequest request,
+                                    List<MultipartFile> images) {
 
         Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
@@ -175,8 +176,44 @@ public class SellerService {
                 request.productName(),
                 request.productDescription(),
                 request.productPrice(),
-                request.productStock()
+                request.productStock(),
+                request.productStatus()
         );
+
+        var dbImages = product.getProductImages();
+        var requestImages = request.imageMetadataList();
+
+        var requestImageIds = requestImages.stream()
+                .map(ImageMetadata::imageId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        var imagesToDelete = dbImages.stream()
+                .filter(img -> !requestImageIds.contains(img.getImageId()))
+                .toList();
+
+        for (var img : imagesToDelete) {
+            this.deleteImageWithS3(img);
+            product.getProductImages().remove(img);
+        }
+
+        for (var img : requestImages) {
+            if (img.isNew()) {
+                var newImages = saveImageWithMetadata(
+                        images,
+                        List.of(img),
+                        seller.getSellerId(),
+                        product.getProductId()
+                );
+                product.getProductImages().addAll(newImages);
+            } else {
+                var existsImage = dbImages.stream()
+                        .filter(imgEntity -> imgEntity.getImageId().equals(img.imageId()))
+                        .findFirst()
+                        .orElseThrow(() -> new DataNotFoundException("기존 이미지 정보를 찾을 수 없습니다."));
+                existsImage.updateMetadata(img);
+            }
+        }
 
         return ProductDTO.fromEntity(productRepository.save(product));
     }
@@ -193,6 +230,11 @@ public class SellerService {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
+
+        var images = product.getProductImages();
+        for (var img : images) {
+            this.deleteImageWithS3(img);
+        }
 
         if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
@@ -214,6 +256,11 @@ public class SellerService {
         }
 
         for (Product product : products) {
+            var images = product.getProductImages();
+            for (var img : images) {
+                this.deleteImageWithS3(img);
+            }
+
             if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
                 throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
             }
@@ -287,16 +334,8 @@ public class SellerService {
             throw new InvalidRequestException("승인된 판매자만 주문 상태를 변경할 수 있습니다.");
         }
 
-        var productIds = productRepository.findBySeller_SellerId(seller.getSellerId())
-                .stream()
-                .map(Product::getProductId)
-                .toList();
-        if (productIds.isEmpty()) {
-            throw new InvalidRequestException("판매자의 상품이 존재하지 않습니다.");
-        }
-
         boolean isMyOrder = orderItemsRepository
-                .existsByOrderItemIdAndProduct_ProductIdIn(orderItemId, productIds);
+                .existsByOrderItemIdAndProduct_Seller(orderItemId, seller);
         if (!isMyOrder) {
             throw new InvalidRequestException("해당 주문 상품에 대한 변경 권한이 없습니다.");
         }
@@ -374,7 +413,7 @@ public class SellerService {
         OrderItemStatus currentStatus = orderItem.getOrderItemStatus();
 
         if (currentStatus != OrderItemStatus.CANCEL_PENDING &&
-            currentStatus != OrderItemStatus.RETURN_PENDING) {
+                currentStatus != OrderItemStatus.RETURN_PENDING) {
             throw new InvalidRequestException("요청 상태의 주문만 처리할 수 있습니다.");
         }
 
@@ -419,6 +458,10 @@ public class SellerService {
                                                       List<ImageMetadata> metadataList,
                                                       UUID sellerId,
                                                       UUID productId) {
+        if (images == null || images.isEmpty()) {
+            return List.of();
+        }
+
         Map<String, MultipartFile> fileMap = images.stream()
                 .collect(Collectors.toMap(MultipartFile::getOriginalFilename, Function.identity()));
 
@@ -444,7 +487,7 @@ public class SellerService {
     }
 
     private String uploadImageToS3(MultipartFile image, UUID sellerId, UUID productId) {
-        log.info("Uploading image to S3 for sellerId: {}, productId: {}", sellerId, productId);
+        log.debug("Uploading image to S3 for sellerId: {}, productId: {}", sellerId, productId);
 
         if (image.isEmpty()) {
             log.info("Image is empty for sellerId: {}, productId: {}", sellerId, productId);
@@ -461,8 +504,8 @@ public class SellerService {
         log.info("Generated unique file name: {}", uniqueFileName);
 
         try {
-            String bucketName = s3StorageProperties.getBucket();
-            s3Template.upload(bucketName,
+            String bucketName = this.s3StorageProperties.getBucket();
+            this.s3Template.upload(bucketName,
                     uniqueFileName,
                     image.getInputStream());
 
@@ -471,6 +514,33 @@ public class SellerService {
             return "/" + bucketName + "/" + uniqueFileName;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void deleteImageWithS3(ProductImages img) {
+        if (img == null || img.getImageUrl() == null) {
+            log.debug("Image or image URL is null, skipping S3 deletion.");
+            return;
+        }
+
+        log.debug("Deleting image from S3: {}", img.getImageUrl());
+
+        var bucketAndKey = img.getImageUrl().substring(1); // 앞의 '/' 제거
+        var splitIndex = bucketAndKey.indexOf('/');
+        if (splitIndex == -1) {
+            log.warn("Invalid S3 image URL format: {}", img.getImageUrl());
+            return;
+        }
+
+        try {
+            String bucketName = bucketAndKey.substring(0, splitIndex);
+            String objectKey = bucketAndKey.substring(splitIndex + 1);
+
+            this.s3Template.deleteObject(bucketName, objectKey);
+            log.debug("Deleted image from S3: bucket={}, key={}", bucketName, objectKey);
+            this.productImagesRepository.delete(img);
+        } catch (Exception e) {
+            log.error("Failed to delete image from S3: {}", img.getImageUrl(), e);
         }
     }
 

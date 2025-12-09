@@ -4,6 +4,7 @@ public enum ProductStatus {
     PENDING,
     APPROVED,
     REJECTED,
+    PAUSED,
     DELETED;
 
     public boolean isApproved() {
