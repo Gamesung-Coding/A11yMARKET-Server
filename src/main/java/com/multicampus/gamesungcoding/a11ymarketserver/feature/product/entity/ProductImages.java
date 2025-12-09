@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ImageMetadata;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -52,5 +53,10 @@ public class ProductImages {
         this.imageUrl = imageUrl;
         this.altText = altText;
         this.imageSequence = imageSequence;
+    }
+
+    public void updateMetadata(ImageMetadata metadata) {
+        this.altText = metadata.altText();
+        this.imageSequence = metadata.sequence();
     }
 }
