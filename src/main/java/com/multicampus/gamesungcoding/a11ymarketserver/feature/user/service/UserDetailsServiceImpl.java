@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
+    private final UserOauthLinksRepository userOauthLinksRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -28,9 +30,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 new SimpleGrantedAuthority("ROLE_" + user.getUserRole())
         );
 
+        String password = user.getUserPass();
+        if (password == null) {
+            // OAuth 사용자의 경우, 비밀번호를 빈 문자열로 설정
+            password = "";
+        }
+
         return new User(
                 user.getUserEmail(),
-                user.getUserPass(),
+                password,
                 authorities
         );
     }
