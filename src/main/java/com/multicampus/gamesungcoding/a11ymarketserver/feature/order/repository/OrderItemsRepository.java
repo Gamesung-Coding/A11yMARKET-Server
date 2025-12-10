@@ -64,4 +64,6 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
                      WHERE p.seller.sellerId = :sellerId
                     """)
     Page<OrderItems> findBySellerIdWithDetails(UUID sellerId, Pageable pageable);
+
+    List<OrderItems> findAllByProduct_Seller(Seller seller);
 }

@@ -3,6 +3,8 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.controller;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.model.AdminSellerUpdateRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.service.AdminSellerService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerApplyResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerProfileResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,23 @@ import java.util.UUID;
 public class AdminSellerManageController {
 
     private final AdminSellerService adminSellerService;
+
+    // 관리자 - 전체 판매자 프로필 조회
+    @GetMapping("/v1/admin/sellers")
+    public ResponseEntity<List<SellerProfileResponse>> getAllSellerProfiles() {
+        return ResponseEntity.ok(
+                adminSellerService.getAllSellerProfile()
+        );
+    }
+
+    // 관리자 - 특정 판매자 프로필 조회
+    @GetMapping("/v1/admin/sellers/{sellerId}")
+    public ResponseEntity<SellerDetailResponse> getSellerProfile(
+            @PathVariable String sellerId) {
+        return ResponseEntity.ok(
+                adminSellerService.getSellerProfile(UUID.fromString(sellerId))
+        );
+    }
 
     // 관리자 - 판매자 승인 대기 목록 조회
     @GetMapping("/v1/admin/sellers/pending")
@@ -43,7 +62,8 @@ public class AdminSellerManageController {
     // 관리자 - 판매자 정보 수정
     @PatchMapping("/v1/admin/sellers/{sellerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<String> updateSellerInfo(@PathVariable String sellerId, @RequestBody AdminSellerUpdateRequest request) {
+    public ResponseEntity<String> updateSellerInfo(@PathVariable String sellerId,
+                                                   @RequestBody AdminSellerUpdateRequest request) {
 
         adminSellerService.updateSellerInfo(UUID.fromString(sellerId), request);
         return ResponseEntity.noContent().build();

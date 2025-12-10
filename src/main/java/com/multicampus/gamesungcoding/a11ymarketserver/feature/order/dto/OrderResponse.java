@@ -21,7 +21,12 @@ public record OrderResponse(
         // OrderStatus orderStatus,
         LocalDateTime createdAt) {
 
-    public static OrderResponse fromEntity(Orders order, List<OrderItemResponse> orderItems) {
+    public static OrderResponse fromEntity(Orders order) {
+        var orderItems = order.getOrderItems()
+                .stream()
+                .map(OrderItemResponse::fromEntity)
+                .toList();
+
         return new OrderResponse(
                 order.getOrderId(),
                 // order.getUserName(),

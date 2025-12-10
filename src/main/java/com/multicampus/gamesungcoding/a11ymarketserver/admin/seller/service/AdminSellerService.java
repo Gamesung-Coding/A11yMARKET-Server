@@ -2,7 +2,11 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.service;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.model.AdminSellerUpdateRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerApplyResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerProfileResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository;
@@ -21,6 +25,24 @@ import java.util.UUID;
 public class AdminSellerService {
 
     private final SellerRepository sellerRepository;
+    private final OrdersRepository ordersRepository;
+    private final OrderItemsRepository orderItemsRepository;
+
+    public List<SellerProfileResponse> getAllSellerProfile() {
+        List<Seller> sellers = sellerRepository.findAll();
+        return sellers.stream()
+                .map(SellerProfileResponse::fromEntity)
+                .toList();
+    }
+
+    public SellerDetailResponse getSellerProfile(UUID sellerId) {
+        Seller seller = sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new DataNotFoundException("Seller not found"));
+
+        var orderItems = orderItemsRepository.findAllByProduct_Seller(seller);
+
+        return SellerDetailResponse.fromEntity(seller, orderItems);
+    }
 
     public List<SellerApplyResponse> inquirePendingSellers() {
 
