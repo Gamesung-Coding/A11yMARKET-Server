@@ -2,7 +2,12 @@ CREATE OR REPLACE VIEW view_monthly_popular_products AS
    SELECT p.product_id,
           p.product_name,
           p.product_price,
-          pi.image_url AS product_image_url,
+          (
+             SELECT image_url
+               FROM product_images pi
+              WHERE pi.product_id = p.product_id
+                AND pi.image_sequence = 0
+          ) AS product_image_url,
           p.category_id,
           cat.category_name,
           p.seller_id,
@@ -19,8 +24,6 @@ CREATE OR REPLACE VIEW view_monthly_popular_products AS
    ON oi.order_id = o.order_id
      JOIN categories cat
    ON p.category_id = cat.category_id
-     LEFT JOIN product_images pi
-   ON p.product_id = pi.product_id
     WHERE o.created_at >= add_months(
          sysdate,
          -1
@@ -34,7 +37,6 @@ CREATE OR REPLACE VIEW view_monthly_popular_products AS
     GROUP BY p.product_id,
              p.product_name,
              p.product_price,
-             pi.image_url,
              p.category_id,
              cat.category_name,
              p.seller_id
