@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,4 +23,13 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     List<Product> findAllBySeller_User_UserEmail(String userEmail);
 
     int countByProductStatus(ProductStatus productStatus);
+
+    @Query("""
+            SELECT p FROM Product p
+            WHERE (:query IS NULL OR
+                   LOWER(p.productName) LIKE LOWER(CONCAT('%', :query, '%')) OR
+                   LOWER(p.productDescription) LIKE LOWER(CONCAT('%', :query, '%')))
+              AND (:status IS NULL OR p.productStatus = :status)
+            """)
+    Page<Product> findAllByQuery(String query, ProductStatus status, Pageable pageable);
 }

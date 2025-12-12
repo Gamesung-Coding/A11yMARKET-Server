@@ -82,12 +82,6 @@ public class OrderService {
 
         int shippingFee = 0;
 
-        // 사용가능한 주소 조회
-        List<Addresses> addresses = addressRepository.findAllByUser_UserEmail(userEmail);
-        if (addresses.isEmpty()) {
-            throw new DataNotFoundException("사용 가능한 배송지가 없습니다.");
-        }
-
         return new OrderSheetResponse(
                 orderItems,
                 totalAmount,

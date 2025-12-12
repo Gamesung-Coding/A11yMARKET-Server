@@ -10,6 +10,9 @@ import java.util.UUID;
 public record SellerApplyResponse(
         UUID sellerId,
         String sellerName,
+        String userName,
+        String userEmail,
+        String userPhone,
         String businessNumber,
         SellerGrades sellerGrade,
         String sellerIntro,
@@ -22,6 +25,9 @@ public record SellerApplyResponse(
         return new SellerApplyResponse(
                 seller.getSellerId(),
                 seller.getSellerName(),
+                seller.getUser().getUserName(),
+                seller.getUser().getUserEmail(),
+                seller.getUser().getUserPhone(),
                 seller.getBusinessNumber(),
                 seller.getSellerGrade(),
                 seller.getSellerIntro(),

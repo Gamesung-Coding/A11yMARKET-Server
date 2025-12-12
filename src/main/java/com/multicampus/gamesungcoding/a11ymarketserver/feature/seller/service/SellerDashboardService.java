@@ -47,17 +47,30 @@ public class SellerDashboardService {
             throw new InvalidRequestException("승인된 판매자만 대시보드를 조회할 수 있습니다.");
         }
 
-        var stats = sellerDashboardRepository.findBySellerId(seller.getSellerId())
-                .orElseThrow(() -> new DataNotFoundException("판매자 대시보드 통계 정보를 찾을 수 없습니다."));
+        var stats = sellerDashboardRepository.findBySellerId(seller.getSellerId());
 
-        return new SellerDashboardResponse(
-                seller.getSellerId(),
-                seller.getSellerName(),
-                stats.getTotalRevenue(),
-                stats.getTotalOrderCount(),
-                calculateRefundRate(stats),
-                calculateConfirmationRate(stats)
-        );
+        if (stats.isEmpty()) {
+            return new SellerDashboardResponse(
+                    seller.getSellerId(),
+                    seller.getSellerName(),
+                    seller.getSellerIntro(),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        } else {
+            var statsData = stats.get();
+            return new SellerDashboardResponse(
+                    seller.getSellerId(),
+                    seller.getSellerName(),
+                    seller.getSellerIntro(),
+                    statsData.getTotalRevenue(),
+                    statsData.getTotalOrderCount(),
+                    calculateRefundRate(statsData),
+                    calculateConfirmationRate(statsData)
+            );
+        }
     }
 
     public List<DailyRevenueDto> getDailyRevenue(String sellerEmail, int year, int month) {

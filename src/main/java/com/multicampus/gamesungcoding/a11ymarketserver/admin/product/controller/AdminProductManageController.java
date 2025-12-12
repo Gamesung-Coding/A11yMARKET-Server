@@ -1,9 +1,9 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.product.controller;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.product.dto.AllProductInquireRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.product.service.AdminProductManageService;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.AdminProductsResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductAdminInquireResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,5 +35,21 @@ public class AdminProductManageController {
 
         this.service.changeProductStatus(UUID.fromString(productId), status);
         return ResponseEntity.ok("SUCCESS");
+    }
+
+    @GetMapping("/v1/admin/products")
+    public ResponseEntity<AdminProductsResponse> inquireAllProducts(@RequestParam(required = false) String query,
+                                                                    @RequestParam(required = false) ProductStatus status,
+                                                                    @RequestParam(defaultValue = "1") Integer page,
+                                                                    @RequestParam(defaultValue = "20") Integer size) {
+
+        var response = this.service.inquireAllProducts(
+                new AllProductInquireRequest(
+                        query,
+                        status,
+                        page,
+                        size
+                ));
+        return ResponseEntity.ok(response);
     }
 }

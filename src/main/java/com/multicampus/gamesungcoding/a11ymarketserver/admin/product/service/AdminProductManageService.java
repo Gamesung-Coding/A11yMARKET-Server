@@ -1,10 +1,15 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.product.service;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.product.dto.AllProductInquireRequest;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.AdminProductsResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductAdminInquireResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,5 +48,26 @@ public class AdminProductManageService {
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         user.changeStatus(status);
+    }
+
+    public AdminProductsResponse inquireAllProducts(AllProductInquireRequest req) {
+        var pageable = PageRequest.of(req.page(), req.size());
+
+        Page<Product> products = this.productRepository.findAllByQuery(
+                req.query(),
+                req.status(),
+                pageable
+        );
+
+        var productResponses = products
+                .getContent()
+                .stream()
+                .map(ProductAdminInquireResponse::fromEntity)
+                .toList();
+
+        return new AdminProductsResponse(
+                productResponses.size(),
+                productResponses
+        );
     }
 }

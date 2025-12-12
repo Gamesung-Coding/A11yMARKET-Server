@@ -16,9 +16,10 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
     // 특정 orderId 주문의 모든 상품 조회
     List<OrderItems> findAllByOrder_OrderId(UUID orderId);
 
-    List<OrderItems> findAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(
+    Page<OrderItems> findAllByProduct_Seller_User_UserEmail_AndOrderItemStatus_OrderByOrder_CreatedAtDesc(
             String userEmail,
-            OrderItemStatus status);
+            OrderItemStatus status,
+            Pageable pageable);
 
     boolean existsByOrderItemIdAndProduct_Seller(UUID orderItemId, Seller seller);
 
@@ -26,7 +27,7 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
             String userEmail,
             List<OrderItemStatus> statuses);
 
-    List<OrderItems> findAllByProduct_Seller_User_UserEmail(String userEmail);
+    Page<OrderItems> findAllByProduct_Seller_User_UserEmail_OrderByOrder_CreatedAtDesc(String userEmail, Pageable pageable);
 
     Boolean existsByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(String userEmail, List<OrderItemStatus> statuses);
 
@@ -66,4 +67,8 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
     Page<OrderItems> findBySellerIdWithDetails(UUID sellerId, Pageable pageable);
 
     List<OrderItems> findAllByProduct_Seller(Seller seller);
+
+    int countAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(String userEmail, OrderItemStatus orderItemStatus);
+
+    int countAllByProduct_Seller_User_UserEmail(String userEmail);
 }

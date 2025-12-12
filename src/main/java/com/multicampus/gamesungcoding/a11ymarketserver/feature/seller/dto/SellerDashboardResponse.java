@@ -6,6 +6,7 @@ import java.util.UUID;
 public record SellerDashboardResponse(
         UUID sellerId,
         String sellerName,
+        String sellerIntro,
         BigDecimal totalRevenue,
         Long totalOrderCount,
         BigDecimal refundRate,

@@ -106,5 +106,12 @@ public class Seller {
         if (sellerGrade != null) this.sellerGrade = sellerGrade;
         if (a11yGuarantee != null) this.isA11yGuarantee = a11yGuarantee;
     }
+
+    public void updateSellerInfo(String sellerName,
+                                 String sellerIntro) {
+
+        if (sellerName != null) this.sellerName = sellerName;
+        if (sellerIntro != null) this.sellerIntro = sellerIntro;
+    }
 }
 
