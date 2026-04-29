@@ -253,7 +253,7 @@ public class OrderService {
                 .findByOrderIdAndUserEmail(orderUuid, userEmail)
                 .orElseThrow(() -> new DataNotFoundException("주문을 찾을 수 없습니다."));
 
-        List<OrderItems> items = orderItemsRepository.findAllByOrder_OrderId(order.getOrderId());
+        List<OrderItems> items = orderItemsRepository.findAllByOrderOrderId(order.getOrderId());
 
         if (items.isEmpty()) {
             throw new InvalidRequestException("주문 상품이 없습니다.");

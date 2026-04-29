@@ -288,19 +288,19 @@ class SellerService(
         val pageable = PageRequest.of(page ?: 0, size ?: 20)
 
         val (itemsList, itemCount) = if (orderItemStatus != null) {
-            orderItemsRepository.findAllByProduct_Seller_User_UserEmail_AndOrderItemStatus_OrderByOrder_CreatedAtDesc(
+            orderItemsRepository.findAllByProductSellerUserUserEmailAndOrderItemStatusOrderByOrderCreatedAtDesc(
                 userEmail,
                 orderItemStatus,
                 pageable
-            ) to orderItemsRepository.countAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(
+            ) to orderItemsRepository.countAllByProductSellerUserUserEmailAndOrderItemStatus(
                 userEmail,
                 orderItemStatus
             )
         } else {
-            orderItemsRepository.findAllByProduct_Seller_User_UserEmail_OrderByOrder_CreatedAtDesc(
+            orderItemsRepository.findAllByProductSellerUserUserEmailOrderByOrderCreatedAtDesc(
                 userEmail,
                 pageable
-            ) to orderItemsRepository.countAllByProduct_Seller_User_UserEmail(userEmail)
+            ) to orderItemsRepository.countAllByProductSellerUserUserEmail(userEmail)
         }
 
         if (itemsList.isEmpty) {
@@ -326,7 +326,7 @@ class SellerService(
             throw InvalidRequestException("승인된 판매자만 주문 상태를 변경할 수 있습니다.")
         }
 
-        if (!orderItemsRepository.existsByOrderItemIdAndProduct_Seller(orderItemId, seller)) {
+        if (!orderItemsRepository.existsByOrderItemIdAndProductSeller(orderItemId, seller)) {
             throw InvalidRequestException("해당 주문 상품에 대한 변경 권한이 없습니다.")
         }
 
@@ -503,7 +503,7 @@ class SellerService(
         )
 
         val claimItems = orderItemsRepository
-            .findAllByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(
+            .findAllByProductSellerUserUserEmailAndOrderItemStatusIn(
                 userEmail,
                 claimStatuses
             )

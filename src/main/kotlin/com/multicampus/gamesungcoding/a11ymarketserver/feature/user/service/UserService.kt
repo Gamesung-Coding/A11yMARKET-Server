@@ -76,7 +76,7 @@ class UserService(
 
         if (user.userRole == UserRole.SELLER) {
             // 판매자 회원의 경우 진행 중인 주문이 있는지 확인
-            if (orderItemsRepository.existsByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(
+            if (orderItemsRepository.existsByProductSellerUserUserEmailAndOrderItemStatusIn(
                     userEmail,
                     OrderItemStatus.inProgressStatuses()
                 )

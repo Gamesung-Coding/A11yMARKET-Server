@@ -34,7 +34,7 @@ public class AdminSellerService {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new DataNotFoundException("Seller not found"));
 
-        var orderItems = orderItemsRepository.findAllByProduct_Seller(seller);
+        var orderItems = orderItemsRepository.findAllByProductSeller(seller);
 
         return SellerDetailResponse.fromEntity(seller, orderItems);
     }

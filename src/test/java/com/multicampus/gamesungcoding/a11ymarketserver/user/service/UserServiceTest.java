@@ -131,7 +131,7 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
-        BDDMockito.when(orderItemsRepository.existsByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(
+        BDDMockito.when(orderItemsRepository.existsByProductSellerUserUserEmailAndOrderItemStatusIn(
                         user.getUserEmail(),
                         OrderItemStatus.inProgressStatuses()
                 ))

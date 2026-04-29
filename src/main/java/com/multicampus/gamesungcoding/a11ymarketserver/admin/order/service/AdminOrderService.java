@@ -31,7 +31,6 @@ public class AdminOrderService {
         List<Orders> results = ordersRepository.searchOrders(
                 request.searchType(),
                 request.keyword(),
-                request.status(),
                 request.startDate(),
                 request.endDate()
         );
