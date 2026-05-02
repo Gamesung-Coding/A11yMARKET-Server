@@ -11,6 +11,8 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.mapper.toDetailResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.mapper.toResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 // 결제 정보 조회
@@ -36,7 +39,7 @@ class OrderService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun getOrderSheet(req: OrderSheetRequest): OrderSheetResponse {
-        val orderItems: List<CartItemDto> = if (req.isFromCart) {
+        val orderItems: List<CartItemDto> = if (!req.cartItemIds.isNullOrEmpty()) {
             val itemIds = req.cartItemIds.map { UUID.fromString(it) }
             val cartItems = cartItemRepository.findAllById(itemIds)
 
@@ -105,7 +108,9 @@ class OrderService(
         )
         var totalAmount = 0
 
-        val orderItemsList: List<OrderItems> = if (req.isFromCart) {
+        val orderItemsList: List<OrderItems> = if (!req.cartItemIds.isNullOrEmpty()) {
+            requireNotNull(req.cartItemIds) { "장바구니에 상품이 없습니다." }
+
             val cartItems = this.getCartItemsByIds(userEmail, req.cartItemIds)
 
             cartItems.map { cartItem ->
@@ -134,14 +139,14 @@ class OrderService(
         orderItemsRepository.saveAll(orderItemsList)
         order.updateTotalPrice(totalAmount)
 
-        return OrderResponse.fromEntity(order)
+        return order.toResponse()
     }
 
     // 내 주문 목록 조회
     @Transactional(readOnly = true)
     fun getMyOrders(userEmail: String): List<OrderResponse> {
         return ordersRepository.findAllByUserEmailOrderByCreatedAtDesc(userEmail)
-            .map { OrderResponse.fromEntity(it) }
+            .map { it.toResponse() }
     }
 
     // 내 주문 상세 조회
@@ -154,7 +159,7 @@ class OrderService(
             throw InvalidRequestException("해당 주문 상품에 대한 권한이 없습니다.")
         }
 
-        return OrderDetailResponse.fromEntity(orderItem)
+        return orderItem.toDetailResponse()
     }
 
     @Transactional
@@ -240,6 +245,7 @@ class OrderService(
             item.product.fillUpStock(-item.productQuantity)
         }
 
+        requireNotNull(req.paymentKey) { "결제 키를 찾을 수 없습니다." }
         tossPaymentService.confirmPayment(req.paymentKey, req.orderId, req.amount)
         // 주문 paymentKey 저장
         order.updatePaymentKey(req.paymentKey)
@@ -252,7 +258,12 @@ class OrderService(
             cartItemRepository.deleteAllByIdInBatch(cartUuids)
         }
 
-        return PaymentVerifyResponse.success(order.orderId, expectedAmount)
+        return PaymentVerifyResponse(
+            orderId = order.orderId,
+            status = "PAID",
+            amount = expectedAmount,
+            paidAt = LocalDateTime.now()
+        )
     }
 
     // Helper methods

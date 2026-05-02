@@ -1,6 +1,5 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -55,15 +54,6 @@ public class Orders {
     // PG사 결제 고유 키 - 환불 처리 시 필요
     @Column(length = 200)
     private String paymentKey;
-
-    /**
-     * @deprecated : 필요하지 않지만, 향후 필요성을 알 수 없어 남겨둠
-     */
-    @Deprecated
-    @JsonIgnore
-    @Enumerated(EnumType.STRING)
-    @Column(length = 30, nullable = false)
-    private final OrderStatus orderStatus = OrderStatus.DEPRECATED;
 
     @CreationTimestamp
     @Column(updatable = false)

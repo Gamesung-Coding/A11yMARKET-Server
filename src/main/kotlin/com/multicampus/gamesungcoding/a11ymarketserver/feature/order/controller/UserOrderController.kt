@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.controller
 
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderCancelRequest
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderConfirmRequest
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse
@@ -31,9 +32,12 @@ class UserOrderController(
     @GetMapping("/{orderItemId}")
     fun getMyOrderDetail(
         @AuthenticationPrincipal userDetails: UserDetails,
-        @PathVariable orderItemId: UUID?
+        @PathVariable orderItemId: String
     ): OrderDetailResponse =
-        orderService.getMyOrderDetail(orderItemId, userDetails.username)
+        runCatching {
+            val orderItemUuid = UUID.fromString(orderItemId)
+            orderService.getMyOrderDetail(orderItemUuid, userDetails.username)
+        }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 
 
     // 주문 취소
