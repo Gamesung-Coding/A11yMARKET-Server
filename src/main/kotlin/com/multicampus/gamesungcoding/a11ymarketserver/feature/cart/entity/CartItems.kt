@@ -13,25 +13,32 @@ import java.util.*
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-class CartItems
-    (
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "cart_id", updatable = false, nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var cart: Cart,
-
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "product_id", updatable = false, nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var product: Product?,
-
-    @Column(nullable = false)
-    var quantity: Int
+class CartItems(
+    cart: Cart,
+    product: Product?,
+    quantity: Int
 ) {
     @Id
     @UuidV7
     @Column(length = 16, updatable = false, nullable = false)
     var cartItemId: UUID? = null // 장바구니 아이템 PK
+        private set
+    
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "cart_id", updatable = false, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var cart: Cart = cart
+        private set
+
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "product_id", updatable = false, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var product: Product? = product
+        private set
+
+    @Column(nullable = false)
+    var quantity: Int = quantity
+        private set
 
     fun changeQuantity(quantity: Int) {
         require(quantity >= 1) { "quantity must be >= 1" }

@@ -78,7 +78,7 @@ class UserService(
             // 판매자 회원의 경우 진행 중인 주문이 있는지 확인
             if (orderItemsRepository.existsByProductSellerUserUserEmailAndOrderItemStatusIn(
                     userEmail,
-                    OrderItemStatus.inProgressStatuses()
+                    OrderItemStatus.inProgressStatuses
                 )
             ) {
                 throw InvalidRequestException("진행 중인 주문이 있어 회원 탈퇴가 불가능합니다.")

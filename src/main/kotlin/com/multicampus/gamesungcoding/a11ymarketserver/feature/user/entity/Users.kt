@@ -15,33 +15,48 @@ import java.util.*
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener::class)
 class Users(
-    @Column(length = 30)
-    var userName: String,
-
-    @Column(length = 50)
-    var userEmail: String,
-
-    @Column(length = 20)
-    var userNickname: String,
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 30)
-    var userRole: UserRole,
-
-    @Column(length = 100)
-    var userPass: String? = null,
-
-    @Column(length = 15)
-    var userPhone: String? = null,
+    userName: String,
+    userEmail: String,
+    userNickname: String,
+    userRole: UserRole,
+    userPass: String? = null,
+    userPhone: String? = null,
 ) {
     @Id
     @UuidV7
     @Column(length = 16, updatable = false, nullable = false)
-    val userId: UUID? = null
+    var userId: UUID? = null
+        private set
+    
+    @Column(length = 30)
+    var userName: String = userName
+        private set
+
+    @Column(length = 50)
+    var userEmail: String = userEmail
+        private set
+
+    @Column(length = 20)
+    var userNickname: String = userNickname
+        private set
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    var userRole: UserRole = userRole
+        private set
+
+    @Column(length = 100)
+    var userPass: String? = userPass
+        private set
+
+    @Column(length = 15)
+    var userPhone: String? = userPhone
+        private set
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    val createdAt: LocalDateTime? = null
+    var createdAt: LocalDateTime? = null
+        private set
 
     @LastModifiedDate
     @Column(nullable = false)

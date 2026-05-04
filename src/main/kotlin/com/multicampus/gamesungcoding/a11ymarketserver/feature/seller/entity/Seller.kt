@@ -17,24 +17,34 @@ import java.util.*
 @Table(name = "sellers")
 @EntityListeners(AuditingEntityListener::class)
 class Seller(
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    val user: Users,
-
-    @Column(nullable = false)
-    var sellerName: String,
-
-    @Column(nullable = false)
-    var businessNumber: String,
-
-    @Column(length = 1024)
-    var sellerIntro: String? = null
+    user: Users,
+    sellerName: String,
+    businessNumber: String,
+    sellerIntro: String? = null
 ) {
     @Id
     @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
-    val sellerId: UUID? = null
+    var sellerId: UUID? = null
+        private set
+    
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    var user: Users = user
+        private set
+
+    @Column(nullable = false)
+    var sellerName: String = sellerName
+        private set
+
+    @Column(nullable = false)
+    var businessNumber: String = businessNumber
+        private set
+
+    @Column(length = 1024)
+    var sellerIntro: String? = sellerIntro
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

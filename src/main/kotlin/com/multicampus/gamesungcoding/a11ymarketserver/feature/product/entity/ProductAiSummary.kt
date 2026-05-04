@@ -1,6 +1,5 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
 import jakarta.persistence.*
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
@@ -14,27 +13,36 @@ import java.util.*
 @Table(name = "product_ai_summary")
 @EntityListeners(AuditingEntityListener::class)
 class ProductAiSummary(
+    product: Product,
+    summaryText: String? = null,
+    usageContext: String? = null,
+    usageMethod: String? = null
+) {
+    @Id
+    @Column
+    var productId: UUID? = null
+        private set
+
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    val product: Product,
+    var product: Product = product
+        private set
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    var summaryText: String? = null,
+    var summaryText: String? = summaryText
+        private set
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    var usageContext: String? = null,
+    var usageContext: String? = usageContext
+        private set
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    var usageMethod: String? = null
-) {
-    @Id
-    @Column
-    var productAiSummaryId: UUID? = null
+    var usageMethod: String? = usageMethod
         private set
 
     @CreatedDate

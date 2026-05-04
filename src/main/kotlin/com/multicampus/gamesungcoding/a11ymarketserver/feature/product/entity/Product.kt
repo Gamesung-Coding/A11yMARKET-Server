@@ -23,35 +23,50 @@ import java.util.*
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener::class)
 class Product(
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "seller_id", updatable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var seller: Seller? = null,
-
-    @JoinColumn(name = "category_id")
-    @ManyToOne(fetch = FetchType.LAZY)
-    var category: Categories? = null,
-
-    @Column(name = "product_price")
-    var productPrice: Int,
-
-    @Column(name = "product_stock")
-    var productStock: Int,
-
-    @Column(name = "product_name", nullable = false)
-    var productName: String,
-
-    @Column(name = "product_description", columnDefinition = "CLOB")
-    var productDescription: String,
-
-    @Column(name = "product_status", length = 50)
-    @Enumerated(EnumType.STRING)
-    var productStatus: ProductStatus
+    seller: Seller? = null,
+    category: Categories? = null,
+    productPrice: Int,
+    productStock: Int,
+    productName: String,
+    productDescription: String,
+    productStatus: ProductStatus
 ) {
     @Id
     @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
     var productId: UUID? = null
+        private set
+    
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "seller_id", updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var seller: Seller? = seller
+        private set
+
+    @JoinColumn(name = "category_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    var category: Categories? = category
+        private set
+
+    @Column(name = "product_price")
+    var productPrice: Int = productPrice
+        private set
+
+    @Column(name = "product_stock")
+    var productStock: Int = productStock
+        private set
+
+    @Column(name = "product_name", nullable = false)
+    var productName: String = productName
+        private set
+
+    @Column(name = "product_description", columnDefinition = "CLOB")
+    var productDescription: String = productDescription
+        private set
+
+    @Column(name = "product_status", length = 50)
+    @Enumerated(EnumType.STRING)
+    var productStatus: ProductStatus = productStatus
         private set
 
     @CreatedDate
