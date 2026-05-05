@@ -1,18 +1,17 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.mapper
 
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderItemResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems
 
 fun OrderItems.toResponse(): OrderItemResponse {
-    val product = this.product
-        ?: throw IllegalStateException("Product not found for order item ${this.orderItemId}")
     return OrderItemResponse(
-        orderItemId = this.orderItemId,
-        productId = product.productId
-            ?: throw IllegalStateException("Product ID not found for order item ${this.orderItemId}"),
+        orderItemId = this.orderItemId ?: throw InvalidRequestException("Order item ID not found"),
+        productId = this.product.productId
+            ?: throw InvalidRequestException("Product ID not found for order item ${this.orderItemId}"),
         productName = this.productName,
-        categoryName = product.category?.categoryName ?: "Unknown Category",
+        categoryName = this.product.category?.categoryName ?: "Unknown Category",
         productPrice = this.productPrice,
         productQuantity = this.productQuantity,
         productTotalPrice = productPrice * productQuantity,
@@ -23,7 +22,7 @@ fun OrderItems.toResponse(): OrderItemResponse {
 }
 
 fun OrderItems.toDetailResponse() = OrderDetailResponse(
-    orderId = this.order.orderId,
+    orderId = this.order.orderId ?: throw InvalidRequestException("Order ID not found"),
     userName = this.order.userName,
     userEmail = this.order.userEmail,
     userPhone = this.order.userPhone,
@@ -33,6 +32,6 @@ fun OrderItems.toDetailResponse() = OrderDetailResponse(
     receiverAddr1 = this.order.receiverAddr1,
     receiverAddr2 = this.order.receiverAddr2,
     totalPrice = this.order.totalPrice,
-    createdAt = this.order.createdAt,
+    createdAt = this.order.createdAt ?: throw InvalidRequestException("Order creation date not found"),
     orderItem = this.toResponse()
 )

@@ -14,7 +14,7 @@ class Orders(
     userPhone: String,
     receiverName: String,
     receiverPhone: String,
-    receiverZipcode: String?,
+    receiverZipcode: String,
     receiverAddr1: String,
     receiverAddr2: String?,
     totalPrice: Int
@@ -46,7 +46,7 @@ class Orders(
         private set
 
     @Column(length = 5, columnDefinition = "CHAR(5)")
-    var receiverZipcode: String? = receiverZipcode
+    var receiverZipcode: String = receiverZipcode
         private set
 
     @Column(length = 100, nullable = false)

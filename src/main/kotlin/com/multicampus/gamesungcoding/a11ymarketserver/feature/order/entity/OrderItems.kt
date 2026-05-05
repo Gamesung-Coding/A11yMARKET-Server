@@ -65,15 +65,27 @@ class OrderItems(
 
     fun cancelOrderItem(reason: String?) {
         when (this.orderItemStatus) {
-            OrderItemStatus.CONFIRMED -> throw IllegalStateException("이미 구매를 확정한 상품은 취소할 수 없습니다.")
-            OrderItemStatus.REJECTED -> throw IllegalStateException("이미 거부된 상품은 취소할 수 없습니다.")
-            OrderItemStatus.CANCEL_PENDING, OrderItemStatus.CANCELED, OrderItemStatus.RETURN_PENDING, OrderItemStatus.RETURNED -> throw IllegalStateException(
-                "이미 취소 요청이 진행 중이거나 완료된 상품입니다."
-            )
+            OrderItemStatus.CONFIRMED ->
+                throw IllegalStateException("이미 구매를 확정한 상품은 취소할 수 없습니다.")
 
-            OrderItemStatus.CANCEL_REJECTED -> throw IllegalStateException("취소 요청이 거부된 상품입니다.")
-            OrderItemStatus.RETURN_REJECTED -> throw IllegalStateException("반품 요청이 거부된 상품입니다.")
-            OrderItemStatus.ACCEPTED, OrderItemStatus.SHIPPING, OrderItemStatus.SHIPPED -> {
+            OrderItemStatus.REJECTED ->
+                throw IllegalStateException("이미 거부된 상품은 취소할 수 없습니다.")
+
+            OrderItemStatus.CANCEL_PENDING,
+            OrderItemStatus.CANCELED,
+            OrderItemStatus.RETURN_PENDING,
+            OrderItemStatus.RETURNED ->
+                throw IllegalStateException("이미 취소 요청이 진행 중이거나 완료된 상품입니다.")
+
+            OrderItemStatus.CANCEL_REJECTED ->
+                throw IllegalStateException("취소 요청이 거부된 상품입니다.")
+
+            OrderItemStatus.RETURN_REJECTED ->
+                throw IllegalStateException("반품 요청이 거부된 상품입니다.")
+
+            OrderItemStatus.ACCEPTED,
+            OrderItemStatus.SHIPPING,
+            OrderItemStatus.SHIPPED -> {
                 this.orderItemStatus = OrderItemStatus.CANCEL_PENDING
                 this.cancelReason = reason
                 return
