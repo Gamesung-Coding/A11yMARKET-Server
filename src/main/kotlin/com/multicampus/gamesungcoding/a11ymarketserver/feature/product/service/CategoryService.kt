@@ -20,16 +20,15 @@ class CategoryService(
 
         val roots = ArrayList<CategoryResponse>()
 
-        for (category in categories) {
-            val currentDto = categoryMap[category.categoryId] ?: continue
+        categories.forEach { category ->
+            val currentDto = categoryMap[category.categoryId] ?: return@forEach
 
-            if (category.parentCategory == null) {
+            val parentId = category.parentCategory?.categoryId
+
+            if (parentId == null) {
                 roots.add(currentDto)
             } else {
-                val parentId = category.parentCategory.categoryId
-                val parentDto = categoryMap[parentId]
-
-                parentDto?.addSubCategory(currentDto)
+                categoryMap[parentId]?.addSubCategory(currentDto)
             }
         }
 

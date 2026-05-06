@@ -87,7 +87,7 @@ class SellerService(
     fun registerProduct(
         userEmail: String,
         request: SellerProductRegisterRequest,
-        images: List<MultipartFile>
+        images: List<MultipartFile>?
     ): ProductDetailResponse {
         val seller = sellerRepository.findByUserUserEmail(userEmail)
             ?: throw DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요.")
@@ -112,12 +112,12 @@ class SellerService(
 
         product = productRepository.save(product)
 
-        if (images.isEmpty() || request.imageMetadataList.isEmpty()) {
-            product.toDetailResponse(null, null);
+        if (images.isNullOrEmpty() || request.imageMetadataList.isEmpty()) {
+            product.toDetailResponse(null, null)
         }
 
         val savedImages = saveImageWithMetadata(
-            images,
+            images ?: emptyList(),
             request.imageMetadataList,
             seller.sellerId,
             product.productId!!
@@ -141,12 +141,11 @@ class SellerService(
         val seller = sellerRepository.findByUserUserEmail(userEmail)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
-        requireNotNull(seller.sellerId) {
-            throw DataNotFoundException("조회된 객체의 Id는 null일 수 없습니다.")
-        }
+        val sellerId = seller.sellerId
+            ?: throw DataNotFoundException("조회된 객체의 Id는 null일 수 없습니다.")
 
         val pageable = PageRequest.of(req.page, req.size)
-        val products = productRepository.findBySellerSellerId(seller.sellerId, pageable)
+        val products = productRepository.findBySellerSellerId(sellerId, pageable)
 
         return products.map { it.toInquireResponse() }.toList()
     }
@@ -336,13 +335,15 @@ class SellerService(
         val currentStatus = item.orderItemStatus
         val nextStatus = req.status
 
+        val paymentKey = item.order.paymentKey ?: throw InvalidRequestException("결제 키를 찾을 수 없습니다.")
+
         validateSellerOrderItemStatus(currentStatus, nextStatus)
 
         when (nextStatus) {
             OrderItemStatus.REJECTED -> {
                 if (currentStatus === OrderItemStatus.PAID) {
                     tossPaymentService.cancelPayment(
-                        item.order.paymentKey,
+                        paymentKey,
                         "주문 거절에 따른 결제 취소",
                         item.productPrice * item.productQuantity
                     )
@@ -354,7 +355,7 @@ class SellerService(
                 if (currentStatus != OrderItemStatus.ORDERED) {
                     try {
                         tossPaymentService.cancelPayment(
-                            item.order.paymentKey,
+                            paymentKey,
                             "주문 취소 승인",
                             item.productPrice * item.productQuantity
                         )
@@ -372,7 +373,7 @@ class SellerService(
 
             OrderItemStatus.RETURNED -> {
                 tossPaymentService.cancelPayment(
-                    item.order.paymentKey,
+                    paymentKey,
                     "반품 승인",
                     item.productPrice * item.productQuantity
                 )
@@ -445,10 +446,9 @@ class SellerService(
         val orderItem = orderItemsRepository.findByIdOrNull(orderItemId)
             ?: throw DataNotFoundException("주문 상품 정보를 찾을 수 없습니다.")
 
-        val product = orderItem.product
-            ?: throw DataNotFoundException("주문한 상품 정보를 찾을 수 없습니다.")
+        val paymentKey = orderItem.order.paymentKey ?: throw InvalidRequestException("결제 키를 찾을 수 없습니다.")
 
-        val productSeller = product.seller
+        val productSeller = orderItem.product.seller
             ?: throw DataNotFoundException("주문 상품의 판매자 정보를 찾을 수 없습니다.")
 
 
@@ -465,7 +465,7 @@ class SellerService(
         if (request.action.isApproved()) {
             if (currentStatus == OrderItemStatus.CANCEL_PENDING) {
                 tossPaymentService.cancelPayment(
-                    orderItem.order.paymentKey,
+                    paymentKey,
                     "주문 취소 승인",
                     orderItem.productPrice * orderItem.productQuantity
                 )
@@ -474,7 +474,7 @@ class SellerService(
             } else {
                 // 위에서 이미 걸러 냈기 때문에 else if 문은 필요하지 않음
                 tossPaymentService.cancelPayment(
-                    orderItem.order.paymentKey,
+                    paymentKey,
                     "반품 승인",
                     orderItem.productPrice * orderItem.productQuantity
                 )
@@ -633,7 +633,7 @@ class SellerService(
     }
 
     @Transactional(readOnly = true)
-    fun getOrderSummary(userEmail: String?): SellerOrderSummaryResponse {
+    fun getOrderSummary(userEmail: String): SellerOrderSummaryResponse {
         val result = orderItemsRepository.countOrderItemsByStatusGroupedBySellerUserEmail(userEmail)
 
         val statusCountMap = result.associate { row ->

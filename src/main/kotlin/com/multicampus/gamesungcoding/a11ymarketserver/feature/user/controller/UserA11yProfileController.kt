@@ -47,14 +47,10 @@ class UserA11yProfileController(
         @AuthenticationPrincipal userDetails: UserDetails,
         @PathVariable profileId: String,
         @Valid @RequestBody req: @Valid UserA11yProfileReq
-    ) {
-        val id: UUID = try {
-            UUID.fromString(profileId)
-        } catch (_: IllegalArgumentException) {
-            throw InvalidRequestException("잘못된 UUID 형식입니다.")
-        }
+    ) = runCatching {
+        val id: UUID = UUID.fromString(profileId)
         profileService.updateProfile(userDetails.username, id, req)
-    }
+    }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 
     // 접근성 프로필 삭제
     @DeleteMapping("/profiles/{profileId}")
@@ -62,12 +58,8 @@ class UserA11yProfileController(
     fun deleteProfile(
         @AuthenticationPrincipal userDetails: UserDetails,
         @PathVariable profileId: String
-    ) {
-        val id: UUID = try {
-            UUID.fromString(profileId)
-        } catch (e: IllegalArgumentException) {
-            throw InvalidRequestException("잘못된 UUID 형식입니다.")
-        }
+    ) = runCatching {
+        val id: UUID = UUID.fromString(profileId)
         profileService.deleteProfile(userDetails.username, id)
-    }
+    }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 }

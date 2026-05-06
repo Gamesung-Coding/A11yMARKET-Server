@@ -94,17 +94,17 @@ class OrderService(
         ) ?: throw DataNotFoundException("주소를 찾을 수 없습니다.")
 
         val order = ordersRepository.save(
-            Orders.builder()
-                .userEmail(address.user.userEmail)
-                .userName(address.user.userName)
-                .userPhone(address.user.userPhone)
-                .receiverName(address.address.receiverName)
-                .receiverPhone(address.address.receiverPhone)
-                .receiverZipcode(address.address.receiverZipcode)
-                .receiverAddr1(address.address.receiverAddr1)
-                .receiverAddr2(address.address.receiverAddr2)
-                .totalPrice(0)
-                .build()
+            Orders(
+                address.user.userEmail,
+                address.user.userName,
+                address.user.userPhone,
+                address.address.receiverName,
+                address.address.receiverPhone,
+                address.address.receiverZipcode,
+                address.address.receiverAddr1,
+                address.address.receiverAddr2,
+                0
+            )
         )
         var totalAmount = 0
 
@@ -168,13 +168,15 @@ class OrderService(
         val orderItem = orderItemsRepository.findByIdOrNull(UUID.fromString(req.orderItemId))
             ?: throw DataNotFoundException("주문 상품을 찾을 수 없습니다.")
 
-        val order: Orders = ordersRepository.findByOrderIdAndUserEmail(orderItem.order.orderId, userEmail)
+        val order: Orders = ordersRepository.findByOrderIdAndUserEmail(orderItem.order.orderId!!, userEmail)
             ?: throw InvalidRequestException("해당 주문 상품에 대한 권한이 없습니다.")
 
         when (orderItem.orderItemStatus) {
-            OrderItemStatus.ORDERED, OrderItemStatus.PAID -> {
+            OrderItemStatus.ORDERED,
+            OrderItemStatus.PAID -> {
+
                 tossPaymentService.cancelPayment(
-                    order.paymentKey,
+                    requireNotNull(order.paymentKey) { "결제 키를 찾을 수 없습니다." },
                     req.reason,
                     orderItem.productPrice * orderItem.productQuantity
                 )
@@ -259,7 +261,7 @@ class OrderService(
         }
 
         return PaymentVerifyResponse(
-            orderId = order.orderId,
+            orderId = order.orderId!!,
             status = "PAID",
             amount = expectedAmount,
             paidAt = LocalDateTime.now()
@@ -301,16 +303,17 @@ class OrderService(
         }
     }
 
-    private fun createOrderItemFromProduct(order: Orders?, product: Product, quantity: Int): OrderItems {
+    private fun createOrderItemFromProduct(order: Orders, product: Product, quantity: Int): OrderItems {
         val imageUrl = product.productImages.firstOrNull()?.imageUrl
 
-        return OrderItems.builder()
-            .order(order)
-            .product(product)
-            .productName(product.productName)
-            .productPrice(product.productPrice)
-            .productQuantity(quantity)
-            .productImageUrl(imageUrl)
-            .build()
+        return OrderItems(
+            order,
+            product,
+            product.productName,
+            product.productPrice,
+            quantity,
+            imageUrl
+        )
+
     }
 }

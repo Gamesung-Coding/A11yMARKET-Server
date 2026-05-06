@@ -11,7 +11,7 @@ import java.util.*
 class Orders(
     userName: String,
     userEmail: String,
-    userPhone: String,
+    userPhone: String?,
     receiverName: String,
     receiverPhone: String,
     receiverZipcode: String,
@@ -34,7 +34,7 @@ class Orders(
         private set
 
     @Column(length = 15, nullable = false)
-    var userPhone: String = userPhone
+    var userPhone: String? = userPhone
         private set
 
     @Column(length = 30, nullable = false)
