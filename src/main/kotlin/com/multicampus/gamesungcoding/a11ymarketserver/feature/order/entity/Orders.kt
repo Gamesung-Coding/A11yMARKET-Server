@@ -9,6 +9,7 @@ import java.util.*
 @Entity
 @Table(name = "ORDERS")
 class Orders(
+    userId: UUID,
     userName: String,
     userEmail: String,
     userPhone: String?,
@@ -23,6 +24,10 @@ class Orders(
     @UuidV7
     @Column(length = 16, nullable = false, updatable = false)
     var orderId: UUID? = null
+        private set
+
+    @Column(length = 16, nullable = false, updatable = false)
+    var userId: UUID = userId
         private set
 
     @Column(length = 30, nullable = false)

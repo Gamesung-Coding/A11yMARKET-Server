@@ -32,8 +32,8 @@ class SellerDashboardService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getDashboard(userEmail: String): SellerDashboardResponse {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun getDashboard(userId: UUID): SellerDashboardResponse {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -69,9 +69,9 @@ class SellerDashboardService(
         }
     }
 
-    fun getDailyRevenue(sellerEmail: String, year: Int, month: Int): List<DailyRevenueDto> {
+    fun getDailyRevenue(userId: UUID, year: Int, month: Int): List<DailyRevenueDto> {
         val result = orderItemsRepository.findDailyRevenue(
-            getSellerIdByEmail(sellerEmail), year, month
+            getSellerIdByUserId(userId), year, month
         )
 
         return result.map { row ->
@@ -83,10 +83,10 @@ class SellerDashboardService(
         }
     }
 
-    fun getTopProducts(sellerEmail: String, limit: Int): List<SellerTopProductResponse> {
+    fun getTopProducts(userId: UUID, limit: Int): List<SellerTopProductResponse> {
         return sellerTopProductRepository
             .findAllByIdSellerIdAndSalesRankLessThanEqualOrderBySalesRankAsc(
-                getSellerIdByEmail(sellerEmail),
+                getSellerIdByUserId(userId),
                 limit
             ).map { it.toTopProductResponse() }
     }
@@ -115,8 +115,8 @@ class SellerDashboardService(
             ) * BigDecimal.valueOf(100)
     }
 
-    fun getRecentOrders(sellerEmail: String, page: Int, size: Int): List<SellerOrderItemResponse> {
-        val sellerId = getSellerIdByEmail(sellerEmail)
+    fun getRecentOrders(userId: UUID, page: Int, size: Int): List<SellerOrderItemResponse> {
+        val sellerId = getSellerIdByUserId(userId)
         val pageable = PageRequest.of(page, size)
 
         return orderItemsRepository
@@ -125,7 +125,7 @@ class SellerDashboardService(
             .map { it.toSellerOrderItemResponse() }
     }
 
-    private fun getSellerIdByEmail(userEmail: String): UUID =
-        sellerRepository.findByUserUserEmail(userEmail)?.sellerId
+    private fun getSellerIdByUserId(userId: UUID): UUID =
+        sellerRepository.findByUserUserId(userId)?.sellerId
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 }

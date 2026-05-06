@@ -24,12 +24,12 @@ class CartController(
     @GetMapping("/me")
     fun getCart(
         @AuthenticationPrincipal userDetails: UserDetails
-    ): CartItemListResponse = cartService.getCartItems(userDetails.username)
+    ): CartItemListResponse = cartService.getCartItems(UUID.fromString(userDetails.username))
 
     @GetMapping("/me/items/count")
     fun getCartItemCount(
         @AuthenticationPrincipal userDetails: UserDetails
-    ): CartItemCountResponse = cartService.getCartItemCount(userDetails.username)
+    ): CartItemCountResponse = cartService.getCartItemCount(UUID.fromString(userDetails.username))
 
     // POST /api/items 상품 추가 기능
     @PostMapping("/me/items")
@@ -40,7 +40,7 @@ class CartController(
         httpResponse: HttpServletResponse
     ): CartItemUpdatedResponse {
         httpResponse.setHeader(HttpHeaders.LOCATION, "/api/me")
-        return cartService.addItem(req, userDetails.username)
+        return cartService.addItem(req, UUID.fromString(userDetails.username))
     }
 
     // PATCH /api/items/{cartItemId} 수량 조정 기능
@@ -52,7 +52,7 @@ class CartController(
     ): CartItemUpdatedResponse = cartService.updateQuantity(
         UUID.fromString(cartItemId),
         body.quantity,
-        userDetails.username
+        UUID.fromString(userDetails.username)
     )
 
     // DELETE /api/items 상품 삭제 기능
@@ -62,6 +62,6 @@ class CartController(
         @Valid @RequestBody itemIds: @Valid CartItemDeleteRequest,
         @AuthenticationPrincipal userDetails: UserDetails
     ) {
-        cartService.deleteItems(itemIds, userDetails.username)
+        cartService.deleteItems(itemIds, UUID.fromString(userDetails.username))
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @RestController
 @RequestMapping("/api")
@@ -33,7 +34,7 @@ class OrderController(
         @Valid @RequestBody req: OrderCreateRequest,
         resp: HttpServletResponse
     ): OrderResponse {
-        val orderResp = orderService.createOrder(userDetails.username, req)
+        val orderResp = orderService.createOrder(UUID.fromString(userDetails.username), req)
         resp.setHeader(HttpHeaders.LOCATION, "/api/v1/users/me/orders/${orderResp.orderId}")
         return orderResp
     }

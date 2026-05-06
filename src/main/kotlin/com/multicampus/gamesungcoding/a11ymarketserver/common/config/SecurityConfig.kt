@@ -89,7 +89,7 @@ class SecurityConfig(
             }
             exceptionHandling {
                 authenticationEntryPoint = AuthenticationEntryPoint { request, response, authException ->
-                    response.status = HttpServletResponse.SC_FORBIDDEN
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
                     response.contentType = "application/json;charset=UTF-8"
                     response.writer.write(
                         "{\"error\": \"Unauthorized\", \"message\": \"${authException?.message}\"}"

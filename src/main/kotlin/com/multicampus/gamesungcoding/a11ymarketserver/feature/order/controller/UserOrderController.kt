@@ -25,7 +25,7 @@ class UserOrderController(
     fun getMyOrders(
         @AuthenticationPrincipal userDetails: UserDetails
     ): List<OrderResponse> =
-        orderService.getMyOrders(userDetails.username)
+        orderService.getMyOrders(UUID.fromString(userDetails.username))
 
 
     // 내 주문 상세 조회
@@ -36,7 +36,7 @@ class UserOrderController(
     ): OrderDetailResponse =
         runCatching {
             val orderItemUuid = UUID.fromString(orderItemId)
-            orderService.getMyOrderDetail(orderItemUuid, userDetails.username)
+            orderService.getMyOrderDetail(orderItemUuid, UUID.fromString(userDetails.username))
         }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 
 
@@ -46,7 +46,7 @@ class UserOrderController(
     fun cancelOrderItems(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestBody @Valid req: OrderCancelRequest
-    ) = orderService.cancelOrderItems(userDetails.username, req)
+    ) = orderService.cancelOrderItems(UUID.fromString(userDetails.username), req)
 
 
     // 주문 확정
@@ -55,5 +55,5 @@ class UserOrderController(
     fun confirmOrderItems(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestBody @Valid req: OrderConfirmRequest
-    ) = orderService.confirmOrderItems(userDetails.username, req)
+    ) = orderService.confirmOrderItems(UUID.fromString(userDetails.username), req)
 }

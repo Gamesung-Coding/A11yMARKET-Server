@@ -36,7 +36,7 @@ class AuthService(
     private val authenticationManager: AuthenticationManager,
     private val userOauthLinksRepository: UserOauthLinksRepository,
 ) {
-    @Transactional(readOnly = true)
+    @Transactional
     fun login(dto: LoginRequest): LoginResponse {
         val user = userRepository.findByUserEmail(dto.email)
             ?: throw UserNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다.")
@@ -71,7 +71,7 @@ class AuthService(
         )
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun getUserInfo(userId: UUID): LoginResponse {
         val user = userRepository.findByIdOrNull(userId)
             ?: throw UserNotFoundException("유효하지 않은 사용자입니다.")

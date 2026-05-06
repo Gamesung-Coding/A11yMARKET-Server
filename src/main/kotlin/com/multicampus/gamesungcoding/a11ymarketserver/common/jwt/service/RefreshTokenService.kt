@@ -8,6 +8,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.JwtProp
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -26,7 +27,7 @@ class RefreshTokenService(
     fun createRefreshToken(authentication: Authentication): String {
         val uid = authentication.name
 
-        val user = userRepository.findByUserEmail(uid)
+        val user = userRepository.findByIdOrNull(UUID.fromString(uid))
             ?: throw DataNotFoundException("User not found with uid: $uid")
 
         val newToken: String = GUID.v7().toString()
@@ -56,12 +57,12 @@ class RefreshTokenService(
     @Transactional
     fun verifyRefreshToken(token: String): RefreshToken {
         val refreshToken = refreshTokenRepository.findByToken(token)
-            ?: throw DataNotFoundException("Refresh token not found: $token")
+            ?: throw DataNotFoundException("Refresh token not found")
 
         if (refreshToken.expiryDate.isBefore(LocalDateTime.now())) {
             log.debug("RefreshTokenService.verifyRefreshToken - Refresh token expired")
             refreshTokenRepository.delete(refreshToken)
-            throw DataNotFoundException("Refresh token has expired: $token")
+            throw DataNotFoundException("Refresh token has expired")
         }
 
         return refreshToken

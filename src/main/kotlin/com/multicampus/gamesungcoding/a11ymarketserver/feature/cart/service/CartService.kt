@@ -26,8 +26,8 @@ class CartService(
     private val log = LoggerFactory.getLogger(CartService::class.java)
 
     @Transactional(readOnly = true)
-    fun getCartItems(userEmail: String): CartItemListResponse {
-        val cart = getCartByUserEmail(userEmail)
+    fun getCartItems(userId: UUID): CartItemListResponse {
+        val cart = getCartByUserId(userId)
         val list = cartItemRepository.findAllByCart(cart).map { it.toDto() }
         val total = list.sumOf { it.quantity * it.productPrice }
 
@@ -45,8 +45,8 @@ class CartService(
     }
 
     @Transactional
-    fun addItem(req: CartAddRequest, userEmail: String): CartItemUpdatedResponse {
-        val cart = getCartByUserEmail(userEmail)
+    fun addItem(req: CartAddRequest, userId: UUID): CartItemUpdatedResponse {
+        val cart = getCartByUserId(userId)
         val productId = UUID.fromString(req.productId)
         val productProxy = productRepository.getReferenceById(productId)
 
@@ -58,8 +58,8 @@ class CartService(
     }
 
     @Transactional
-    fun updateQuantity(cartItemId: UUID, quantity: Int, userEmail: String): CartItemUpdatedResponse {
-        val cart = getCartByUserEmail(userEmail)
+    fun updateQuantity(cartItemId: UUID, quantity: Int, userId: UUID): CartItemUpdatedResponse {
+        val cart = getCartByUserId(userId)
 
         val cartItem = cartItemRepository.findByIdOrNull(cartItemId)
             ?: throw DataNotFoundException("Cart item not found: $cartItemId")
@@ -74,9 +74,9 @@ class CartService(
     }
 
     @Transactional
-    fun deleteItems(request: CartItemDeleteRequest, userEmail: String) {
+    fun deleteItems(request: CartItemDeleteRequest, userId: UUID) {
         val itemIds = request.itemIds.map { UUID.fromString(it) }
-        val cart = getCartByUserEmail(userEmail)
+        val cart = getCartByUserId(userId)
 
         val invalidItems = cartItemRepository.findAllById(itemIds)
             .filter { it.cart.cartId != cart.cartId }
@@ -89,13 +89,13 @@ class CartService(
         cartItemRepository.deleteAllByIdInBatch(itemIds)
     }
 
-    private fun getCartByUserEmail(userEmail: String): Cart {
-        val user = userRepository.findByUserEmail(userEmail)
-            ?: throw DataNotFoundException("사용자를 찾을 수 없습니다. userEmail=$userEmail")
+    private fun getCartByUserId(userId: UUID): Cart {
+        val user = userRepository.findByIdOrNull(userId)
+            ?: throw DataNotFoundException("사용자를 찾을 수 없습니다. userId=$userId")
 
         // Optional 없이 순수 코틀린 문법으로 처리!
         return cartRepository.findByUser(user) ?: run {
-            log.debug("장바구니가 없어 새로 생성합니다. userEmail={}", userEmail)
+            log.debug("장바구니가 없어 새로 생성합니다. userId={}", userId)
             cartRepository.save(
                 Cart(user)
             )
@@ -103,9 +103,9 @@ class CartService(
     }
 
     @Transactional(readOnly = true)
-    fun getCartItemCount(userEmail: String): CartItemCountResponse {
+    fun getCartItemCount(userId: UUID): CartItemCountResponse {
         return CartItemCountResponse(
-            cartItemRepository.countByCart(getCartByUserEmail(userEmail))
+            cartItemRepository.countByCart(getCartByUserId(userId))
         )
     }
 }

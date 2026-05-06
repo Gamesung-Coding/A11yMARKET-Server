@@ -14,26 +14,26 @@ interface OrderItemsRepository : JpaRepository<OrderItems, UUID> {
     // 특정 orderId 주문의 모든 상품 조회
     fun findAllByOrderOrderId(orderId: UUID?): List<OrderItems>
 
-    fun findAllByProductSellerUserUserEmailAndOrderItemStatusOrderByOrderCreatedAtDesc(
-        userEmail: String?,
+    fun findAllByProductSellerUserUserIdAndOrderItemStatusOrderByOrderCreatedAtDesc(
+        userId: UUID?,
         status: OrderItemStatus?,
         pageable: Pageable?
     ): Page<OrderItems>
 
     fun existsByOrderItemIdAndProductSeller(orderItemId: UUID, seller: Seller): Boolean
 
-    fun findAllByProductSellerUserUserEmailAndOrderItemStatusIn(
-        userEmail: String,
+    fun findAllByProductSellerUserUserIdAndOrderItemStatusIn(
+        userId: UUID,
         statuses: List<OrderItemStatus>
     ): List<OrderItems>
 
-    fun findAllByProductSellerUserUserEmailOrderByOrderCreatedAtDesc(
-        userEmail: String,
+    fun findAllByProductSellerUserUserIdOrderByOrderCreatedAtDesc(
+        userId: UUID,
         pageable: Pageable
     ): Page<OrderItems>
 
-    fun existsByProductSellerUserUserEmailAndOrderItemStatusIn(
-        userEmail: String,
+    fun existsByProductSellerUserUserIdAndOrderItemStatusIn(
+        userId: UUID,
         statuses: List<OrderItemStatus>
     ): Boolean
 
@@ -84,12 +84,12 @@ interface OrderItemsRepository : JpaRepository<OrderItems, UUID> {
 
     fun findAllByProductSeller(seller: Seller): List<OrderItems>
 
-    fun countAllByProductSellerUserUserEmailAndOrderItemStatus(
-        userEmail: String,
+    fun countAllByProductSellerUserUserIdAndOrderItemStatus(
+        userId: UUID,
         orderItemStatus: OrderItemStatus
     ): Int
 
-    fun countAllByProductSellerUserUserEmail(userEmail: String): Int
+    fun countAllByProductSellerUserUserId(userId: UUID): Int
 
     @Query(
         """
@@ -98,10 +98,10 @@ interface OrderItemsRepository : JpaRepository<OrderItems, UUID> {
              JOIN oi.product p
              JOIN p.seller s
              JOIN s.user u
-             WHERE u.userEmail = :userEmail
+             WHERE u.userId = :userId
              GROUP BY oi.orderItemStatus
             
             """
     )
-    fun countOrderItemsByStatusGroupedBySellerUserEmail(@Param("userEmail") userEmail: String): List<Array<Any?>>
+    fun countOrderItemsByStatusGroupedBySellerUserId(@Param("userId") userId: UUID): List<Array<Any?>>
 }

@@ -11,6 +11,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.mapper.toA11yProfileResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserA11yProfileRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -23,8 +24,8 @@ class UserA11yProfileService(
 
 ) {
     // 프로필 목록 조회
-    fun getMyProfiles(userEmail: String): List<UserA11yProfileResponse> {
-        val user = getUserByEmail(userEmail)
+    fun getMyProfiles(userId: UUID): List<UserA11yProfileResponse> {
+        val user = getUserById(userId)
         val list: List<UserA11yProfile> = profileRepository.findAllByUserOrderByCreatedAtAsc(user)
         return list.map { it.toA11yProfileResponse() }.toList()
     }
@@ -32,8 +33,8 @@ class UserA11yProfileService(
 
     // 프로필 생성
     @Transactional
-    fun createProfile(userEmail: String, dto: UserA11yProfileReq): UserA11yProfileResponse {
-        val user = getUserByEmail(userEmail)
+    fun createProfile(userId: UUID, dto: UserA11yProfileReq): UserA11yProfileResponse {
+        val user = getUserById(userId)
 
         // 프로필 이름 중복 체크
         if (profileRepository.existsByUserAndProfileInfoProfileName(user, dto.profileName)) {
@@ -62,8 +63,8 @@ class UserA11yProfileService(
 
     // 프로필 수정
     @Transactional
-    fun updateProfile(userEmail: String, profileId: UUID, dto: UserA11yProfileReq) {
-        val user = getUserByEmail(userEmail)
+    fun updateProfile(userId: UUID, profileId: UUID, dto: UserA11yProfileReq) {
+        val user = getUserById(userId)
 
         val profile: UserA11yProfile = profileRepository.findByProfileIdAndUser(profileId, user)
             ?: throw DataNotFoundException("해당 접근성 프로필을 찾을 수 없습니다.")
@@ -94,10 +95,10 @@ class UserA11yProfileService(
 
     // 프로필 삭제
     @Transactional
-    fun deleteProfile(userEmail: String, profileId: UUID) {
+    fun deleteProfile(userId: UUID, profileId: UUID) {
         val deleted = profileRepository.deleteByProfileIdAndUser(
             profileId = profileId,
-            user = getUserByEmail(userEmail)
+            user = getUserById(userId)
         )
 
         if (deleted == 0L) {
@@ -105,8 +106,7 @@ class UserA11yProfileService(
         }
     }
 
-    // UserEmail -> UserId 변환
-    private fun getUserByEmail(email: String): Users =
-        userRepository.findByUserEmail(email)
+    private fun getUserById(userId: UUID): Users =
+        userRepository.findByIdOrNull(userId)
             ?: throw UserNotFoundException("해당 사용자를 찾을 수 없습니다")
 }

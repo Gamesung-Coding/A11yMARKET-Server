@@ -7,8 +7,8 @@ import java.util.*
 
 @Repository
 interface AddressRepository : JpaRepository<Addresses, UUID> {
-    fun findByUserUserEmailOrderByCreatedAtDesc(userEmail: String): List<Addresses>
-    fun findByUserUserEmailAndIsDefaultTrue(userEmail: String): Addresses?
-    fun findByAddressIdAndUserUserEmail(addressId: UUID, userEmail: String): Addresses?
-    fun findAllByUserUserEmail(userEmail: String): List<Addresses>
+    fun findByUserUserIdOrderByCreatedAtDesc(userId: UUID): List<Addresses>
+    fun findByUserUserIdAndIsDefaultTrue(userId: UUID): Addresses?
+    fun findByAddressIdAndUserUserId(addressId: UUID, userId: UUID): Addresses?
+    fun findAllByUserUserId(userId: UUID): List<Addresses>
 }

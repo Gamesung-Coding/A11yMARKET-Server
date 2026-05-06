@@ -62,11 +62,9 @@ class SellerService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun applySeller(userEmail: String, request: SellerApplyRequest): SellerApplyResponse {
-        val user = userRepository.findByUserEmail(userEmail)
+    fun applySeller(userId: UUID, request: SellerApplyRequest): SellerApplyResponse {
+        val user = userRepository.findByIdOrNull(userId)
             ?: throw UserNotFoundException("사용자 정보를 찾을 수 없습니다.")
-
-        val userId = requireNotNull(user.userId) { "사용자 식별자가 존재하지 않습니다." }
 
         if (sellerRepository.existsByUserUserId(userId)) {
             throw DataDuplicatedException("이미 판매자이거나 판매자 신청 이력이 존재합니다.")
@@ -85,11 +83,11 @@ class SellerService(
     }
 
     fun registerProduct(
-        userEmail: String,
+        userId: UUID,
         request: SellerProductRegisterRequest,
         images: List<MultipartFile>?
     ): ProductDetailResponse {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요.")
 
 
@@ -137,8 +135,8 @@ class SellerService(
     }
 
     @Transactional(readOnly = true)
-    fun getMyProducts(userEmail: String, req: SellerInquireProductRequest): List<ProductInquireResponse> {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun getMyProducts(userId: UUID, req: SellerInquireProductRequest): List<ProductInquireResponse> {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         val sellerId = seller.sellerId
@@ -151,12 +149,12 @@ class SellerService(
     }
 
     fun updateProduct(
-        userEmail: String,
+        userId: UUID,
         productId: UUID,
         request: SellerProductUpdateRequest,
         images: List<MultipartFile>?
     ): ProductDTO {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -213,8 +211,8 @@ class SellerService(
         return productRepository.save(product).toDTO()
     }
 
-    fun deleteProduct(userEmail: String, productId: UUID) {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun deleteProduct(userId: UUID, productId: UUID) {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -232,8 +230,8 @@ class SellerService(
         productRepository.save(product)
     }
 
-    fun deleteProducts(userEmail: String, products: List<Product>) {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun deleteProducts(userId: UUID, products: List<Product>) {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -250,8 +248,8 @@ class SellerService(
         productRepository.saveAll(products)
     }
 
-    fun updateProductStock(userEmail: String, productId: UUID, request: SellerProductStockUpdateRequest): ProductDTO {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun updateProductStock(userId: UUID, productId: UUID, request: SellerProductStockUpdateRequest): ProductDTO {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -272,12 +270,12 @@ class SellerService(
 
     @Transactional(readOnly = true)
     fun getReceivedOrders(
-        userEmail: String,
+        userId: UUID,
         orderItemStatus: OrderItemStatus?,
         page: Int?,
         size: Int?
     ): SellerOrderInquireResponse {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -287,19 +285,19 @@ class SellerService(
         val pageable = PageRequest.of(page ?: 0, size ?: 20)
 
         val (itemsList, itemCount) = if (orderItemStatus != null) {
-            orderItemsRepository.findAllByProductSellerUserUserEmailAndOrderItemStatusOrderByOrderCreatedAtDesc(
-                userEmail,
+            orderItemsRepository.findAllByProductSellerUserUserIdAndOrderItemStatusOrderByOrderCreatedAtDesc(
+                userId,
                 orderItemStatus,
                 pageable
-            ) to orderItemsRepository.countAllByProductSellerUserUserEmailAndOrderItemStatus(
-                userEmail,
+            ) to orderItemsRepository.countAllByProductSellerUserUserIdAndOrderItemStatus(
+                userId,
                 orderItemStatus
             )
         } else {
-            orderItemsRepository.findAllByProductSellerUserUserEmailOrderByOrderCreatedAtDesc(
-                userEmail,
+            orderItemsRepository.findAllByProductSellerUserUserIdOrderByOrderCreatedAtDesc(
+                userId,
                 pageable
-            ) to orderItemsRepository.countAllByProductSellerUserUserEmail(userEmail)
+            ) to orderItemsRepository.countAllByProductSellerUserUserId(userId)
         }
 
         if (itemsList.isEmpty) {
@@ -314,11 +312,11 @@ class SellerService(
 
     @Transactional
     fun updateOrderItemStatus(
-        userEmail: String,
+        userId: UUID,
         orderItemId: UUID,
         req: SellerOrderItemsStatusUpdateRequest
     ) {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -435,8 +433,8 @@ class SellerService(
         }
     }
 
-    fun processOrderClaim(userEmail: String, orderItemId: UUID, request: SellerOrderClaimProcessRequest) {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun processOrderClaim(userId: UUID, orderItemId: UUID, request: SellerOrderClaimProcessRequest) {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -489,8 +487,8 @@ class SellerService(
     }
 
     @Transactional(readOnly = true)
-    fun getOrderClaims(userEmail: String): List<SellerOrderItemResponse> {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun getOrderClaims(userId: UUID): List<SellerOrderItemResponse> {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
         if (!seller.sellerSubmitStatus.isApproved) {
@@ -503,8 +501,8 @@ class SellerService(
         )
 
         val claimItems = orderItemsRepository
-            .findAllByProductSellerUserUserEmailAndOrderItemStatusIn(
-                userEmail,
+            .findAllByProductSellerUserUserIdAndOrderItemStatusIn(
+                userId,
                 claimStatuses
             )
 
@@ -620,8 +618,8 @@ class SellerService(
         )
     }
 
-    fun updateSellerInfo(userEmail: String, @Valid req: @Valid SellerUpdateRequest): SellerInfoResponse {
-        val seller = sellerRepository.findByUserUserEmail(userEmail)
+    fun updateSellerInfo(userId: UUID, @Valid req: @Valid SellerUpdateRequest): SellerInfoResponse {
+        val seller = sellerRepository.findByUserUserId(userId)
             ?: throw DataNotFoundException("판매자 정보가 존재하지 않습니다.")
 
         seller.updateSellerInfo(
@@ -633,8 +631,8 @@ class SellerService(
     }
 
     @Transactional(readOnly = true)
-    fun getOrderSummary(userEmail: String): SellerOrderSummaryResponse {
-        val result = orderItemsRepository.countOrderItemsByStatusGroupedBySellerUserEmail(userEmail)
+    fun getOrderSummary(userId: UUID): SellerOrderSummaryResponse {
+        val result = orderItemsRepository.countOrderItemsByStatusGroupedBySellerUserId(userId)
 
         val statusCountMap = result.associate { row ->
             (row[0] as OrderItemStatus) to (row[1] as Long)

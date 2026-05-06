@@ -23,7 +23,7 @@ class AddressController(
     @GetMapping("/address")
     fun getAddressList(
         @AuthenticationPrincipal userDetails: UserDetails
-    ): List<AddressResponse> = addressService.getAddressList(userDetails.username)
+    ): List<AddressResponse> = addressService.getAddressList(UUID.fromString(userDetails.username))
 
     @PostMapping("/address")
     @ResponseStatus(HttpStatus.CREATED)
@@ -32,7 +32,7 @@ class AddressController(
         @Valid @RequestBody request: AddressRequest,
         httpResponse: HttpServletResponse
     ): AddressResponse {
-        val result = addressService.insertAddress(userDetails.username, request)
+        val result = addressService.insertAddress(UUID.fromString(userDetails.username), request)
         httpResponse.setHeader(HttpHeaders.LOCATION, "/api/address/${result.addressId}")
         return result
     }
@@ -43,7 +43,7 @@ class AddressController(
         @PathVariable addressId: String,
         @Valid @RequestBody request: AddressRequest
     ): AddressResponse =
-        addressService.updateAddress(userDetails.username, addressId, request)
+        addressService.updateAddress(UUID.fromString(userDetails.username), addressId, request)
 
     @DeleteMapping("/address/{addressId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -51,13 +51,13 @@ class AddressController(
         @AuthenticationPrincipal userDetails: UserDetails,
         @PathVariable addressId: String
     ) {
-        addressService.deleteAddress(userDetails.username, addressId)
+        addressService.deleteAddress(UUID.fromString(userDetails.username), addressId)
     }
 
     @GetMapping("/default-address")
     fun getDefaultAddress(
         @AuthenticationPrincipal userDetails: UserDetails
-    ): AddressResponse = addressService.getDefaultAddress(userDetails.username)
+    ): AddressResponse = addressService.getDefaultAddress(UUID.fromString(userDetails.username))
 
     @PatchMapping("/default-address")
     fun updateDefaultAddress(
@@ -65,7 +65,7 @@ class AddressController(
         @Valid @RequestBody request: DefaultAddressRequest
     ): String {
         addressService.setDefaultAddress(
-            userDetails.username,
+            UUID.fromString(userDetails.username),
             UUID.fromString(request.addressId)
         )
         return "SUCCESS"

@@ -21,7 +21,7 @@ interface ProductRepository : JpaRepository<Product, UUID>, JpaSpecificationExec
     // 특정 판매자의 상품 전체 조회
     fun findBySellerSellerId(sellerId: UUID, pageable: Pageable): Page<Product>
 
-    fun findAllBySellerUserUserEmail(userEmail: String): List<Product>
+    fun findAllBySellerUserUserId(userId: UUID): List<Product>
 
     fun countByProductStatus(productStatus: ProductStatus): Int
 

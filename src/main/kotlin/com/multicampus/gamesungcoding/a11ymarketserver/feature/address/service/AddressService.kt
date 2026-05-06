@@ -23,15 +23,15 @@ class AddressService(
     private val userRepository: UserRepository
 ) {
 
-    fun getAddressList(userEmail: String): List<AddressResponse> {
-        return addressRepository.findByUserUserEmailOrderByCreatedAtDesc(userEmail)
+    fun getAddressList(userId: UUID): List<AddressResponse> {
+        return addressRepository.findByUserUserIdOrderByCreatedAtDesc(userId)
             .map { it.toResponse() }
     }
 
     @Transactional
-    fun insertAddress(userEmail: String, req: AddressRequest): AddressResponse {
+    fun insertAddress(userId: UUID, req: AddressRequest): AddressResponse {
         var address = Addresses(
-            user = getUserByEmail(userEmail),
+            user = getUserById(userId),
             address = AddressInfo(
                 addressName = req.addressName,
                 receiverName = req.receiverName,
@@ -45,24 +45,24 @@ class AddressService(
 
         address = addressRepository.save(address)
         if (req.isDefault == true) {
-            setDefaultAddressByAddressId(userEmail, requireNotNull(address.addressId))
+            setDefaultAddressByAddressId(userId, requireNotNull(address.addressId))
         }
 
         return address.toResponse()
     }
 
     @Transactional
-    fun updateAddress(userEmail: String, addressId: String, dto: AddressRequest): AddressResponse {
+    fun updateAddress(userId: UUID, addressId: String, dto: AddressRequest): AddressResponse {
         val uuid = UUID.fromString(addressId)
 
-        addressRepository.findByAddressIdAndUserUserEmail(uuid, userEmail)
+        addressRepository.findByAddressIdAndUserUserId(uuid, userId)
             ?: throw DataNotFoundException("해당 사용자의 주소를 찾을 수 없습니다.")
 
         val address = addressRepository.findByIdOrNull(uuid)
             ?: throw DataNotFoundException("해당 주소를 찾을 수 없습니다.")
 
         if (dto.isDefault == true) {
-            setDefaultAddressByAddressId(userEmail, uuid)
+            setDefaultAddressByAddressId(userId, uuid)
         }
 
         address.updateAddrInfo(
@@ -80,8 +80,8 @@ class AddressService(
     }
 
     @Transactional
-    fun deleteAddress(userEmail: String, addressId: String) {
-        val address = addressRepository.findByAddressIdAndUserUserEmail(UUID.fromString(addressId), userEmail)
+    fun deleteAddress(userId: UUID, addressId: String) {
+        val address = addressRepository.findByAddressIdAndUserUserId(UUID.fromString(addressId), userId)
             ?: throw DataNotFoundException("해당 사용자의 주소를 찾을 수 없습니다.")
 
         if (address.isDefault) {
@@ -90,41 +90,41 @@ class AddressService(
         addressRepository.delete(address)
     }
 
-    fun getDefaultAddress(userEmail: String): AddressResponse {
-        val address = addressRepository.findByUserUserEmailAndIsDefaultTrue(userEmail)
+    fun getDefaultAddress(userId: UUID): AddressResponse {
+        val address = addressRepository.findByUserUserIdAndIsDefaultTrue(userId)
             ?: throw DataNotFoundException("기본 배송지가 설정되어 있지 않습니다.")
         return address.toResponse()
     }
 
     @Transactional
-    fun setDefaultAddress(userEmail: String, addressId: UUID) {
-        val defaultAddress = addressRepository.findByUserUserEmailAndIsDefaultTrue(userEmail)
+    fun setDefaultAddress(userId: UUID, addressId: UUID) {
+        val defaultAddress = addressRepository.findByUserUserIdAndIsDefaultTrue(userId)
 
         if (defaultAddress != null) {
             if (defaultAddress.addressId == addressId) return
             defaultAddress.setDefault(false)
         }
 
-        setDefaultAddressByAddressId(userEmail, addressId)
+        setDefaultAddressByAddressId(userId, addressId)
     }
 
-    private fun setDefaultAddressByAddressId(userEmail: String, addressId: UUID) {
+    private fun setDefaultAddressByAddressId(userId: UUID, addressId: UUID) {
         val address = addressRepository.findByIdOrNull(addressId)
             ?: throw DataNotFoundException("Address not found")
 
-        if (address.user.userEmail != userEmail) {
+        if (address.user.userId != userId) {
             throw InvalidRequestException("Address does not belong to the user")
         }
 
-        addressRepository.findByUserUserEmailAndIsDefaultTrue(userEmail)?.let {
+        addressRepository.findByUserUserIdAndIsDefaultTrue(userId)?.let {
             if (it.addressId != addressId) it.setDefault(false)
         }
 
         address.setDefault(true)
     }
 
-    private fun getUserByEmail(userEmail: String): Users {
-        return userRepository.findByUserEmail(userEmail)
+    private fun getUserById(userId: UUID): Users {
+        return userRepository.findByIdOrNull(userId)
             ?: throw UserNotFoundException("사용자를 찾을 수 없습니다.")
     }
 }

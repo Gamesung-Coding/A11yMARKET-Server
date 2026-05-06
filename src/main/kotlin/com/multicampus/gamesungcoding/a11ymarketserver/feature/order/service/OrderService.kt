@@ -88,14 +88,15 @@ class OrderService(
 
     // 주문 생성
     @Transactional
-    fun createOrder(userEmail: String, req: OrderCreateRequest): OrderResponse {
-        val address = addressRepository.findByAddressIdAndUserUserEmail(
+    fun createOrder(userId: UUID, req: OrderCreateRequest): OrderResponse {
+        val address = addressRepository.findByAddressIdAndUserUserId(
             UUID.fromString(req.addressId),
-            userEmail
+            userId
         ) ?: throw DataNotFoundException("주소를 찾을 수 없습니다.")
 
         val order = ordersRepository.save(
             Orders(
+                userId = userId,
                 userName = address.user.userName,
                 userEmail = address.user.userEmail,
                 userPhone = address.user.userPhone,
@@ -112,7 +113,7 @@ class OrderService(
         val orderItemsList: List<OrderItems> = if (!req.cartItemIds.isNullOrEmpty()) {
             requireNotNull(req.cartItemIds) { "장바구니에 상품이 없습니다." }
 
-            val cartItems = this.getCartItemsByIds(userEmail, req.cartItemIds)
+            val cartItems = this.getCartItemsByIds(userId, req.cartItemIds)
 
             cartItems.map { cartItem ->
                 val product = requireNotNull(cartItem.product) { "장바구니의 상품정보를 찾을 수 없습니다." }
@@ -145,18 +146,18 @@ class OrderService(
 
     // 내 주문 목록 조회
     @Transactional(readOnly = true)
-    fun getMyOrders(userEmail: String): List<OrderResponse> {
-        return ordersRepository.findAllByUserEmailOrderByCreatedAtDesc(userEmail)
+    fun getMyOrders(userId: UUID): List<OrderResponse> {
+        return ordersRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
             .map { it.toResponse() }
     }
 
     // 내 주문 상세 조회
     @Transactional(readOnly = true)
-    fun getMyOrderDetail(orderItemId: UUID, userEmail: String): OrderDetailResponse {
+    fun getMyOrderDetail(orderItemId: UUID, userId: UUID): OrderDetailResponse {
         val orderItem = orderItemsRepository.findByIdOrNull(orderItemId)
             ?: throw DataNotFoundException("주문 상품을 찾을 수 없습니다.")
 
-        if (orderItem.order.userEmail != userEmail) {
+        if (orderItem.order.userId != userId) {
             throw InvalidRequestException("해당 주문 상품에 대한 권한이 없습니다.")
         }
 
@@ -164,12 +165,12 @@ class OrderService(
     }
 
     @Transactional
-    fun cancelOrderItems(userEmail: String, req: OrderCancelRequest) {
+    fun cancelOrderItems(userId: UUID, req: OrderCancelRequest) {
         // 권한 검증
         val orderItem = orderItemsRepository.findByIdOrNull(UUID.fromString(req.orderItemId))
             ?: throw DataNotFoundException("주문 상품을 찾을 수 없습니다.")
 
-        val order: Orders = ordersRepository.findByOrderIdAndUserEmail(orderItem.order.orderId!!, userEmail)
+        val order: Orders = ordersRepository.findByOrderIdAndUserId(orderItem.order.orderId!!, userId)
             ?: throw InvalidRequestException("해당 주문 상품에 대한 권한이 없습니다.")
 
         when (orderItem.orderItemStatus) {
@@ -193,14 +194,14 @@ class OrderService(
 
     // 주문 구매 확정
     @Transactional
-    fun confirmOrderItems(userEmail: String, req: OrderConfirmRequest) {
+    fun confirmOrderItems(userId: UUID, req: OrderConfirmRequest) {
         val itemUuid = runCatching { UUID.fromString(req.orderItemId) }
             .getOrElse { throw InvalidRequestException("유효하지 않은 주문 상품 ID가 포함되어 있습니다.") }
 
         val item = orderItemsRepository.findByIdOrNull(itemUuid)
             ?: throw DataNotFoundException("주문 상품을 찾을 수 없습니다.")
 
-        if (item.order.userEmail != userEmail) {
+        if (item.order.userId != userId) {
             throw InvalidRequestException("해당 주문 상품에 대한 권한이 없습니다.")
         }
 
@@ -218,11 +219,11 @@ class OrderService(
 
     // 결제 검증
     @Transactional
-    fun verifyPayment(userEmail: String, req: PaymentVerifyRequest): PaymentVerifyResponse {
+    fun verifyPayment(userId: UUID, req: PaymentVerifyRequest): PaymentVerifyResponse {
         val orderUuid = runCatching { UUID.fromString(req.orderId) }
             .getOrElse { throw InvalidRequestException("유효하지 않은 주문 상품 ID가 포함되어 있습니다.") }
 
-        val order = ordersRepository.findByOrderIdAndUserEmail(orderUuid, userEmail)
+        val order = ordersRepository.findByOrderIdAndUserId(orderUuid, userId)
             ?: throw DataNotFoundException("주문을 찾을 수 없습니다.")
 
         val items = orderItemsRepository.findAllByOrderOrderId(order.orderId!!)
@@ -270,7 +271,7 @@ class OrderService(
     }
 
     // Helper methods
-    private fun getCartItemsByIds(userEmail: String, orderItemIds: List<String>): List<CartItems> {
+    private fun getCartItemsByIds(userId: UUID, orderItemIds: List<String>): List<CartItems> {
         val itemUuids = runCatching { orderItemIds.map { UUID.fromString(it) } }
             .getOrElse { throw InvalidRequestException("유효하지 않은 장바구니 아이템 ID가 포함되어 있습니다.") }
 
@@ -282,12 +283,12 @@ class OrderService(
         }
 
         // 소유자 검증
-        val emailList = cartItems
-            .map { it.cart.user.userEmail }
+        val ownerIdList = cartItems
+            .map { it.cart.user.userId }
             .distinct()
 
         // 소유자가 요청자와 일치하는지 확인
-        if (emailList.size != 1 || emailList.first() != userEmail) {
+        if (ownerIdList.size != 1 || ownerIdList.first() != userId) {
             throw InvalidRequestException("장바구니 아이템의 소유자와 요청자가 일치하지 않습니다.")
         }
 

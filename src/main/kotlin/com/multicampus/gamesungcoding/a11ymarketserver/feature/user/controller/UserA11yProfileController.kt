@@ -23,7 +23,7 @@ class UserA11yProfileController(
     fun getMyProfiles(
         @AuthenticationPrincipal userDetails: UserDetails
     ): List<UserA11yProfileResponse> =
-        profileService.getMyProfiles(userDetails.username)
+        profileService.getMyProfiles(UUID.fromString(userDetails.username))
 
 
     // 접근성 프로필 생성
@@ -34,7 +34,7 @@ class UserA11yProfileController(
         @Valid @RequestBody req: UserA11yProfileReq,
         response: HttpServletResponse
     ): UserA11yProfileResponse {
-        val saved = profileService.createProfile(userDetails.username, req)
+        val saved = profileService.createProfile(UUID.fromString(userDetails.username), req)
         response.setHeader("Location", "/api/v1/users/me/a11y/profiles/${saved.profileId}")
         return saved
     }
@@ -49,7 +49,7 @@ class UserA11yProfileController(
         @Valid @RequestBody req: @Valid UserA11yProfileReq
     ) = runCatching {
         val id: UUID = UUID.fromString(profileId)
-        profileService.updateProfile(userDetails.username, id, req)
+        profileService.updateProfile(UUID.fromString(userDetails.username), id, req)
     }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 
     // 접근성 프로필 삭제
@@ -60,6 +60,6 @@ class UserA11yProfileController(
         @PathVariable profileId: String
     ) = runCatching {
         val id: UUID = UUID.fromString(profileId)
-        profileService.deleteProfile(userDetails.username, id)
+        profileService.deleteProfile(UUID.fromString(userDetails.username), id)
     }.getOrElse { throw InvalidRequestException("잘못된 UUID 형식입니다.") }
 }

@@ -24,10 +24,10 @@ class JwtTokenProvider(
     private val accessTokenValidityMs: Long = jwtProperties.accessTokenValidityMs
 
     fun createAccessToken(authentication: Authentication): String {
-        // e.g., "ROLE_USER,ROLE_ADMIN"
+        // Store raw role names without ROLE_ prefix (e.g., "USER,ADMIN")
         val authorities = authentication
             .authorities
-            .joinToString(",") { it.authority ?: "" }
+            .joinToString(",") { it.authority?.removePrefix("ROLE_") ?: "" }
 
         return createToken(authentication.name, authorities)
     }
@@ -59,7 +59,7 @@ class JwtTokenProvider(
         val authClaim = claims["auth"]?.toString() ?: ""
         val authorities = authClaim.split(",")
             .filter { it.isNotBlank() }
-            .map { SimpleGrantedAuthority(it) }
+            .map { SimpleGrantedAuthority("ROLE_$it") }
 
         val principal = User(claims.subject, "", authorities)
         return UsernamePasswordAuthenticationToken(principal, token, principal.authorities)

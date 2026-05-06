@@ -17,9 +17,11 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.mapper.toRes
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
@@ -36,21 +38,21 @@ class UserService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     // 마이페이지 - 회원 정보 조회
-    fun getUserInfo(userEmail: String): UserResponse =
-        getUserByEmail(userEmail).toResponse()
+    fun getUserInfo(userId: String): UserResponse =
+        getUserById(userId).toResponse()
 
 
     // 마이페이지 - 회원 정보 수정
     @Transactional
-    fun updateUserInfo(userEmail: String, dto: UserUpdateRequest): UserResponse {
-        val user = getUserByEmail(userEmail)
+    fun updateUserInfo(userId: String, dto: UserUpdateRequest): UserResponse {
+        val user = getUserById(userId)
         user.updateUserInfo(dto)
         return user.toResponse()
     }
 
     @Transactional
-    fun updateUserPassword(userEmail: String, dto: UserPWUpdateRequest) {
-        val user = getUserByEmail(userEmail)
+    fun updateUserPassword(userId: String, dto: UserPWUpdateRequest) {
+        val user = getUserById(userId)
         val currentPassword = user.userPass
             ?: throw InvalidRequestException("현재 비밀번호가 설정되어 있지 않습니다.")
 
@@ -62,8 +64,8 @@ class UserService(
     }
 
     @Transactional
-    fun deleteUser(userEmail: String, req: UserDeleteRequest) {
-        val user = getUserByEmail(userEmail)
+    fun deleteUser(userId: String, req: UserDeleteRequest) {
+        val user = getUserById(userId)
         val isOauthUser = userOauthLinksRepository.existsByUser(user)
 
         val isPasswordMatch = user.userPass?.let {
@@ -74,10 +76,12 @@ class UserService(
             throw InvalidRequestException("비밀번호가 일치하지 않습니다.")
         }
 
+        val userUuid = user.userId ?: throw UserNotFoundException("User not found")
+
         if (user.userRole == UserRole.SELLER) {
             // 판매자 회원의 경우 진행 중인 주문이 있는지 확인
-            if (orderItemsRepository.existsByProductSellerUserUserEmailAndOrderItemStatusIn(
-                    userEmail,
+            if (orderItemsRepository.existsByProductSellerUserUserIdAndOrderItemStatusIn(
+                    userUuid,
                     OrderItemStatus.inProgressStatuses
                 )
             ) {
@@ -86,17 +90,22 @@ class UserService(
 
             // 모든 Product를 논리적으로 삭제 처리
             sellerService.deleteProducts(
-                userEmail,
-                productRepository.findAllBySellerUserUserEmail(userEmail)
+                userUuid,
+                productRepository.findAllBySellerUserUserId(userUuid)
             )
         }
 
-        log.info("Deleting user with email: {}", userEmail)
-        authService.logout(userEmail)
+        log.info("Deleting user with id: {}", userUuid)
+        authService.logout(userUuid)
         userRepository.delete(user)
     }
 
-    private fun getUserByEmail(userEmail: String): Users =
-        userRepository.findByUserEmail(userEmail)
-            ?: throw UserNotFoundException("사용자 정보가 존재하지 않습니다.")
+    private fun getUserById(userId: String): Users =
+        runCatching {
+            val userId = UUID.fromString(userId)
+            userRepository.findByIdOrNull(userId)
+                ?: throw UserNotFoundException("사용자 정보가 존재하지 않습니다.")
+        }.getOrElse {
+            throw InvalidRequestException("User ID is invalid: $userId")
+        }
 }

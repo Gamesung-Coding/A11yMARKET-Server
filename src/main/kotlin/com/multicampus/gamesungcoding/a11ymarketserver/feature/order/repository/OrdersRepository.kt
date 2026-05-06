@@ -8,10 +8,10 @@ import java.util.*
 
 interface OrdersRepository : JpaRepository<Orders, UUID> {
     // 내 주문 목록
-    fun findAllByUserEmailOrderByCreatedAtDesc(userEmail: String): List<Orders>
+    fun findAllByUserIdOrderByCreatedAtDesc(userId: UUID): List<Orders>
 
     // 내 주문 상세
-    fun findByOrderIdAndUserEmail(orderId: UUID, userEmail: String): Orders?
+    fun findByOrderIdAndUserId(orderId: UUID, userId: UUID): Orders?
 
     // 관리자 주문 목록 조회 필터링
     @Query(

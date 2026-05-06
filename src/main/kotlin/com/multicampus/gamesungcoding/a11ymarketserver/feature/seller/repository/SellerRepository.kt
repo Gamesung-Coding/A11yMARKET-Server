@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
 interface SellerRepository : JpaRepository<Seller, UUID> {
-    fun findByUserUserEmail(userEmail: String): Seller?
+    fun findByUserUserId(userId: UUID): Seller?
 
     // sellerSubmitStatus가 pending인 만매자 조회
     fun findAllBySellerSubmitStatus(status: SellerSubmitStatus): List<Seller>
