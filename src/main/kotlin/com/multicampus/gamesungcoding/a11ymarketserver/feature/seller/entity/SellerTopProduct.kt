@@ -1,4 +1,4 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.EmbeddedId

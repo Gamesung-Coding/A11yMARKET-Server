@@ -42,7 +42,7 @@ class AuthService(
             ?: throw UserNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다.")
 
         val authentication = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(user.userId, user.userPass)
+            UsernamePasswordAuthenticationToken(user.userId, dto.password)
         )
 
         return LoginResponse.fromEntityAndTokens(
@@ -77,7 +77,7 @@ class AuthService(
             ?: throw UserNotFoundException("유효하지 않은 사용자입니다.")
 
         val authentication: Authentication = UsernamePasswordAuthenticationToken(
-            user.userId,
+            user.userId.toString(),
             null,
             listOf(SimpleGrantedAuthority(user.userRole.name))
         )
@@ -175,10 +175,10 @@ class AuthService(
         )
 
     @Transactional
-    fun logout(userEmail: String) {
-        userRepository.findByUserEmail(userEmail)
+    fun logout(userId: UUID) {
+        userRepository.findByIdOrNull(userId)
             ?: throw InvalidRequestException("유효하지 않은 사용자입니다.")
-        refreshTokenService.deleteRefreshToken(userEmail)
+        refreshTokenService.deleteRefreshToken(userId)
     }
 
     private fun getUserByRefreshToken(refreshToken: String): Users {

@@ -34,24 +34,24 @@ class OAuth2LoginSuccessHandler(
 
         val oauthLink = userOauthLinksRepository.findByOauthProviderId(kakaoId)
             ?: userOauthLinksRepository.save(
-                UserOauthLinks.builder()
-                    .oauthProvider("KAKAO")
-                    .oauthProviderId(kakaoId)
-                    .build()
+                UserOauthLinks(
+                    oauthProvider = "KAKAO",
+                    oauthProviderId = kakaoId,
+                )
             )
 
 
         val user = oauthLink.user
 
         val targetUrl = if (user == null) {
-            val tempJwt = jwtTokenProvider.createTemporaryAccessToken(oauthLink.userOauthLinkId)
+            val tempJwt = jwtTokenProvider.createTemporaryAccessToken(oauthLink.userOauthLinkId!!)
             UriComponentsBuilder.fromUriString(oAuth2Properties.signupUri)
                 .queryParam("temp_token", tempJwt)
                 .build()
                 .encode(StandardCharsets.UTF_8)
                 .toUriString()
         } else {
-            val jwt = jwtTokenProvider.createAccessToken(user.userId, user.userRole)
+            val jwt = jwtTokenProvider.createAccessToken(user.userId!!, user.userRole)
             UriComponentsBuilder.fromUriString(oAuth2Properties.redirectUri)
                 .queryParam("token", jwt)
                 .build()

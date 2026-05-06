@@ -5,7 +5,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItem
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemUpdatedResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems
 
-fun CartItems.toItemDto(): CartItemDto {
+fun CartItems.toDto(): CartItemDto {
     val cart = this.cart
     val product = this.product
     val seller = product?.seller
@@ -20,12 +20,12 @@ fun CartItems.toItemDto(): CartItemDto {
     return CartItemDto(
         this.cartItemId ?: throw DataNotFoundException("Cannot find itemId for CartItem"),
         cart.cartId,
-        product.productId,
-        seller.sellerId,
+        product.productId ?: throw DataNotFoundException("Cannot find related product for CartItem"),
+        seller.sellerId ?: throw DataNotFoundException("Cannot find related seller for CartItem"),
         seller.sellerName,
         product.productName,
         product.productPrice,
-        product.category.categoryName,
+        product.category?.categoryName ?: throw DataNotFoundException("Cannot find related category for CartItem"),
         this.quantity,
         productImageUrl
     )

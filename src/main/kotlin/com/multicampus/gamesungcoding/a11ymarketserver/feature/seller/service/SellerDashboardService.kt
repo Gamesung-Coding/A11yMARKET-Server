@@ -44,11 +44,11 @@ class SellerDashboardService(
             throw DataNotFoundException("조회된 객체의 Id는 null일 수 없습니다.")
         }
 
-        val stats = sellerDashboardRepository.findBySellerId(seller.sellerId)
+        val stats = sellerDashboardRepository.findBySellerId(seller.sellerId!!)
 
         return if (stats == null) {
             SellerDashboardResponse(
-                seller.sellerId,
+                seller.sellerId!!,
                 seller.sellerName,
                 seller.sellerIntro,
                 null,
@@ -58,7 +58,7 @@ class SellerDashboardService(
             )
         } else {
             SellerDashboardResponse(
-                seller.sellerId,
+                seller.sellerId!!,
                 seller.sellerName,
                 seller.sellerIntro,
                 stats.totalRevenue,

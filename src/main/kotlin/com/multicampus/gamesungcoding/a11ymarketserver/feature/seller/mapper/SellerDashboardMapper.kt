@@ -1,6 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.SellerTopProduct
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerTopProduct
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerTopProductResponse
 
 fun SellerTopProduct.toTopProductResponse(): SellerTopProductResponse {

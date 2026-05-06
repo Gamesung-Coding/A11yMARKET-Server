@@ -9,5 +9,5 @@ interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
 
     fun findByUserUserId(userId: UUID): RefreshToken?
 
-    fun deleteByToken(token: String)
+    fun deleteByUserUserId(userId: UUID)
 }

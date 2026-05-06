@@ -27,7 +27,7 @@ class JwtTokenProvider(
         // e.g., "ROLE_USER,ROLE_ADMIN"
         val authorities = authentication
             .authorities
-            .joinToString(",") { it.authority }
+            .joinToString(",") { it.authority ?: "" }
 
         return createToken(authentication.name, authorities)
     }

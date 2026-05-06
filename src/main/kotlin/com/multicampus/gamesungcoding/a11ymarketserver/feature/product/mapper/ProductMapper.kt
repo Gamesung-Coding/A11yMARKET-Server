@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.mapper
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemDto
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary
@@ -40,14 +41,14 @@ fun Product.toResponse(): ProductResponse {
 
 fun Product.toDetailResponse(images: List<ProductImages>?, summary: ProductAiSummary?): ProductDetailResponse {
     val seller = this.seller
-        ?: throw DataNotFoundException("Seller ID is missing")
+        ?: throw DataNotFoundException("Seller is missing")
     val category = this.category
         ?: throw DataNotFoundException("Category is missing")
 
     return ProductDetailResponse(
         productId ?: throw DataNotFoundException("Product ID is missing"),
         productName,
-        seller.sellerId,
+        seller.sellerId ?: throw DataNotFoundException("Seller ID is missing"),
         seller.sellerName,
         seller.sellerGrade,
         seller.isA11yGuarantee,
@@ -62,6 +63,27 @@ fun Product.toDetailResponse(images: List<ProductImages>?, summary: ProductAiSum
         summary?.usageContext,
         submitDate ?: throw DataNotFoundException("Submit Date is missing"),
         summary?.usageMethod
+    )
+}
+
+fun Product.toCartItemDTO(quantity: Int): CartItemDto {
+    val seller = this.seller ?: throw DataNotFoundException("Seller is missing")
+
+    return CartItemDto(
+        null,
+        null,
+        this.productId ?: throw DataNotFoundException("Product ID is missing"),
+        seller.sellerId ?: throw DataNotFoundException("Seller ID is missing"),
+        seller.sellerName,
+        this.productName,
+        this.productPrice,
+        this.category?.categoryName ?: throw DataNotFoundException("Category is missing"),
+        quantity,
+        if (this.productImages.isEmpty()) {
+            null
+        } else {
+            this.productImages.first().imageUrl
+        }
     )
 }
 

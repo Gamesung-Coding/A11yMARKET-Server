@@ -15,7 +15,7 @@ import java.util.*
 class UserOauthLinks(
     oauthProvider: String,
     oauthProviderId: String,
-    user: Users?,
+    user: Users? = null,
 ) {
     @Id
     @UuidV7

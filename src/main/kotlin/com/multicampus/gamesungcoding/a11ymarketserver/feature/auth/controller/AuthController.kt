@@ -8,7 +8,6 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResp
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
@@ -32,9 +31,12 @@ class AuthController(
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun logout(@AuthenticationPrincipal userDetails: UserDetails): ResponseEntity<Void> {
-        authService.logout(userDetails.username)
-        return ResponseEntity.noContent().build()
+    fun logout(@AuthenticationPrincipal userDetails: UserDetails) {
+        runCatching {
+            val userId = UUID.fromString(userDetails.username)
+            authService.logout(userId)
+        }
+
     }
 
     @PostMapping("/refresh")

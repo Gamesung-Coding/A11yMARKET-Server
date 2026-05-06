@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.util.*
 
 @Component
 class RefreshTokenService(
@@ -67,7 +68,7 @@ class RefreshTokenService(
     }
 
     @Transactional
-    fun deleteRefreshToken(token: String) {
-        refreshTokenRepository.deleteByToken(token)
+    fun deleteRefreshToken(userId: UUID) {
+        refreshTokenRepository.deleteByUserUserId(userId)
     }
 }

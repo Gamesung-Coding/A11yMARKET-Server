@@ -4,7 +4,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotF
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toItemDto
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toDto
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toUpdateResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartRepository
@@ -28,7 +28,7 @@ class CartService(
     @Transactional(readOnly = true)
     fun getCartItems(userEmail: String): CartItemListResponse {
         val cart = getCartByUserEmail(userEmail)
-        val list = cartItemRepository.findAllByCart(cart).map { it.toItemDto() }
+        val list = cartItemRepository.findAllByCart(cart).map { it.toDto() }
         val total = list.sumOf { it.quantity * it.productPrice }
 
         val groupedList = list.groupBy { it.sellerName }

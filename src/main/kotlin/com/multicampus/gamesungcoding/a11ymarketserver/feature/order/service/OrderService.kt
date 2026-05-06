@@ -5,7 +5,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidR
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repository.AddressRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemDto
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toItemDto
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toDto
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus
@@ -17,6 +17,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.mapper.toCartItemDTO
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -54,7 +55,7 @@ class OrderService(
                     throw InvalidRequestException("구매할 수 없는 상품이 포함되어 있습니다.")
                 }
 
-                item.toItemDto()
+                item.toDto()
             }
         } else {
             val orderItemReq = req.directOrderItem
@@ -71,7 +72,7 @@ class OrderService(
                 throw InvalidRequestException("재고가 부족한 상품입니다.")
             }
 
-            listOf(CartItemDto.of(product, orderItemReq.quantity))
+            listOf(product.toCartItemDTO(orderItemReq.quantity))
         }
 
         val totalAmount = orderItems.sumOf { it.productPrice * it.quantity }
@@ -95,15 +96,15 @@ class OrderService(
 
         val order = ordersRepository.save(
             Orders(
-                address.user.userEmail,
-                address.user.userName,
-                address.user.userPhone,
-                address.address.receiverName,
-                address.address.receiverPhone,
-                address.address.receiverZipcode,
-                address.address.receiverAddr1,
-                address.address.receiverAddr2,
-                0
+                userName = address.user.userName,
+                userEmail = address.user.userEmail,
+                userPhone = address.user.userPhone,
+                receiverName = address.address.receiverName,
+                receiverPhone = address.address.receiverPhone,
+                receiverZipcode = address.address.receiverZipcode,
+                receiverAddr1 = address.address.receiverAddr1,
+                receiverAddr2 = address.address.receiverAddr2,
+                totalPrice = 0
             )
         )
         var totalAmount = 0
