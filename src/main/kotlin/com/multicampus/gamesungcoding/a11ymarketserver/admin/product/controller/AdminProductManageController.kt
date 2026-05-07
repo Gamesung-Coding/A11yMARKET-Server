@@ -34,6 +34,6 @@ class AdminProductManageController(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "20") size: Int
     ): AdminProductsResponse = service.inquireAllProducts(
-        AllProductInquireRequest(query, status, page, size)
+        AllProductInquireRequest(query ?: "", status ?: ProductStatus.APPROVED, page, size)
     )
 }

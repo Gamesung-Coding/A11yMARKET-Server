@@ -12,24 +12,24 @@ import java.util.*
 @Table(name = "view_category_recommendations")
 class CategoryRecommendations(
     @Column(name = "root_id", columnDefinition = "RAW(16)")
-    private var rootCategoryId: UUID?,
+    var rootCategoryId: UUID?,
 
     @Column(name = "root_name")
-    private var rootCategoryName: String?,
+    var rootCategoryName: String?,
 
     @Column
-    private var productName: String,
+    var productName: String,
 
     @Column
-    private var productPrice: Int,
+    var productPrice: Int,
 
     @Column
-    private var productImageUrl: String,
+    var productImageUrl: String,
 
     @Column
-    private var monthlySalesVolume: Long,
+    var monthlySalesVolume: Long,
 ) {
     @Id
     @Column(columnDefinition = "RAW(16)")
-    private var productId: UUID? = null
+    var productId: UUID? = null
 }

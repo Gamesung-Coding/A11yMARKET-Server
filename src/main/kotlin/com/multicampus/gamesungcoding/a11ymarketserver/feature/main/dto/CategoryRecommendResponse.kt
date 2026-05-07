@@ -6,7 +6,6 @@ data class CategoryRecommendResponse(
     var categoryId: UUID,
     var categoryName: String
 ) {
-
     val products: MutableList<CatProductInfo> = mutableListOf()
 
     fun addProduct(product: CatProductInfo) {

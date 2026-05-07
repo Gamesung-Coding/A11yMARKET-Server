@@ -11,7 +11,7 @@ import java.util.*
 @Entity
 class MainPageEvents(
     @Column(length = 200, nullable = false)
-    var eventTitle: String?,
+    var eventTitle: String,
 
     @Column(length = 1000, nullable = false)
     var eventDescription: String,

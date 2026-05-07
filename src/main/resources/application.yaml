@@ -67,6 +67,10 @@ oauth2:
 app:
   s3:
     bucket: ${S3_BUCKET_NAME:a11ymarket-bucket}
+    endpoint: ${spring.cloud.aws.s3.endpoint}
+    region: ${spring.cloud.aws.region.static}
+    access-key: ${spring.cloud.aws.credentials.access-key}
+    secret-key: ${spring.cloud.aws.credentials.secret-key}
 
 # Server configuration
 server:

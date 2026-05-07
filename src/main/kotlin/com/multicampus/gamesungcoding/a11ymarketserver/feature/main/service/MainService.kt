@@ -38,10 +38,10 @@ class MainService(
             val currentDto = roots[item.rootCategoryId]
             if (currentDto != null) {
                 val productInfo = CatProductInfo(
-                    item.productId,
-                    item.productName,
-                    item.productPrice,
-                    item.productImageUrl
+                    productId = item.productId!!,
+                    productName = item.productName,
+                    productPrice = item.productPrice,
+                    productImageUrl = item.productImageUrl
                 )
                 currentDto.addProduct(productInfo)
             }

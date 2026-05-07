@@ -39,8 +39,9 @@ class SellerController(
         @RequestBody @Valid request: SellerUpdateRequest
     ): SellerInfoResponse = sellerService.updateSellerInfo(UUID.fromString(userDetails.username), request)
 
+    @Deprecated("Deprecated since v1.1.0")
     @PostMapping(value = ["/products"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     fun registerProduct(
         @AuthenticationPrincipal userDetails: UserDetails,
         @Valid @RequestPart("data") @Parameter(
@@ -48,7 +49,13 @@ class SellerController(
             content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE)]
         ) request: SellerProductRegisterRequest,
         @RequestPart(value = "images", required = false) images: List<MultipartFile>?
-    ): ProductDetailResponse = sellerService.registerProduct(UUID.fromString(userDetails.username), request, images)
+    ): ProductDetailResponse =
+        sellerService.registerProduct(
+            UUID.fromString(userDetails.username),
+            request,
+            images
+        )
+
 
     @GetMapping("/products")
     fun getMyProducts(
@@ -56,6 +63,7 @@ class SellerController(
         @ModelAttribute req: SellerInquireProductRequest
     ): List<ProductInquireResponse> = sellerService.getMyProducts(UUID.fromString(userDetails.username), req)
 
+    @Deprecated("Deprecated since v1.1.0")
     @PutMapping(path = ["/products/{productId}"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun updateProduct(
         @AuthenticationPrincipal userDetails: UserDetails,
@@ -87,7 +95,8 @@ class SellerController(
         @AuthenticationPrincipal userDetails: UserDetails,
         @PathVariable productId: String,
         @RequestBody @Valid request: SellerProductStockUpdateRequest
-    ): ProductDTO = sellerService.updateProductStock(UUID.fromString(userDetails.username), UUID.fromString(productId), request)
+    ): ProductDTO =
+        sellerService.updateProductStock(UUID.fromString(userDetails.username), UUID.fromString(productId), request)
 
     @GetMapping("/orders/items")
     fun getReceivedOrders(
@@ -145,7 +154,8 @@ class SellerController(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestParam(defaultValue = "2025") year: Int,
         @RequestParam(defaultValue = "12") month: Int
-    ): List<DailyRevenueDto> = sellerDashboardService.getDailyRevenue(UUID.fromString(userDetails.username), year, month)
+    ): List<DailyRevenueDto> =
+        sellerDashboardService.getDailyRevenue(UUID.fromString(userDetails.username), year, month)
 
     @GetMapping("/dashboard/top-products")
     fun getTopProducts(
