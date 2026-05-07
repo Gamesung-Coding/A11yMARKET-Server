@@ -4,7 +4,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.dto.ProductAn
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.ai.model.Media
+import org.springframework.ai.content.Media
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
@@ -16,11 +16,11 @@ import javax.imageio.ImageIO
 
 @Service
 class ProductAnalysisService(
-    builder: ChatClient.Builder
+    chatClientBuilder: ChatClient.Builder
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private val chatClient: ChatClient = builder.build()
+    private val chatClient: ChatClient = chatClientBuilder.build()
 
     fun analysisProductImage(
         productName: String?,
@@ -28,64 +28,56 @@ class ProductAnalysisService(
         images: List<MultipartFile>?
     ): ProductAnalysisResult? {
         // 이미지 업로드 테스트 이후 적용
-        val prompt = String.format(
-            """
-                        당신은 쇼핑몰 상품 등록 도우미입니다.
-                        제공된 상품 이미지를 분석하여 다음 정보를 한국어 및 존댓말로 작성해주세요.
-                        
-                        [분석 지침]
-                        1. **판매자의 설명**을 가장 우선적으로 참고하세요.
-                        2. 설명에 없는 정보는 **이미지**를 보고 추론하세요.
-                        3. 이미지가 여러장일 경우, 모든 이미지를 종합적으로 분석하세요.
-                        4. 불확실한 정보는 추측하지 말고 "정보 없음"으로 작성하세요.
-                        
-                        [상품명]
-                        %s
-                        
-                        [판매자 설명]
-                        %s
-                        
-                        위 내용을 바탕으로 아래 항목을 JSON으로 추출하세요.
-                        1. 상품에 대한 간단한 한 줄 요약
-                        2. 사용처(어디에, 어떤 상황에서 사용하는지).
-                        3. 사용 방법 (영양제라면 복용법, 기계라면 간단한 작동법, 의류라면 세탁 및 관리법 등).
-                        
-                        """.trimIndent(),
-            productName,
-            if (userDescription.isNullOrBlank())
-                "정보 없음 (이미지만 참고)"
-            else
-                userDescription
-        )
+        val prompt = """당신은 쇼핑몰 상품 등록 도우미입니다.
+                제공된 상품 이미지를 분석하여 다음 정보를 한국어 및 존댓말로 작성해주세요.
+                
+                [분석 지침]
+                1. **판매자의 설명**을 가장 우선적으로 참고하세요.
+                2. 설명에 없는 정보는 **이미지**를 보고 추론하세요.
+                3. 이미지가 여러장일 경우, 모든 이미지를 종합적으로 분석하세요.
+                4. 불확실한 정보는 추측하지 말고 "정보 없음"으로 작성하세요.
+                
+                [상품명]
+                $productName
+                
+                [판매자 설명]
+                ${if (userDescription.isNullOrBlank()) "정보 없음 (이미지만 참고)" else userDescription}
+                
+                위 내용을 바탕으로 아래 항목을 JSON으로 추출하세요.
+                1. 상품에 대한 간단한 한 줄 요약
+                2. 사용처(어디에, 어떤 상황에서 사용하는지).
+                3. 사용 방법 (영양제라면 복용법, 기계라면 간단한 작동법, 의류라면 세탁 및 관리법 등)."""
 
-        val mediaList: MutableList<Media?> = ArrayList<Media?>()
-        if (images != null) {
-            for (image in images) {
+        val mediaList = ArrayList<Media>()
+        images?.forEach { image ->
+            try {
+                val resizedBytes = resizeImage(image, 1024, "png")
+                mediaList.add(
+                    Media.builder()
+                        .mimeType(MimeTypeUtils.IMAGE_PNG)
+                        .data(ByteArrayResource(resizedBytes))
+                        .build()
+                )
+            } catch (err: IOException) {
+                log.error("이미지 처리 중 오류 발생: {}", err.message)
                 try {
-                    val resizedBytes = resizeImage(image, 1024, "png")
                     mediaList.add(
-                        Media(
-                            MimeTypeUtils.IMAGE_PNG,
-                            ByteArrayResource(resizedBytes)
-                        )
+                        Media.builder()
+                            .mimeType(MimeTypeUtils.parseMimeType(image.contentType ?: "image/png"))
+                            .data(image.resource)
+                            .build()
                     )
-                } catch (err: IOException) {
-                    log.error("이미지 처리 중 오류 발생: {}", err.message)
-                    try {
-                        mediaList.add(
-                            Media(
-                                MimeTypeUtils.parseMimeType(image.contentType ?: "image/png"),
-                                image.resource
-                            )
-                        )
-                    } catch (e: Exception) {
-                        log.error("원본 이미지 추가 중 오류 발생: {}", e.message)
-                    }
+                } catch (e: Exception) {
+                    log.error("원본 이미지 추가 중 오류 발생: {}", e.message)
                 }
             }
         }
 
-        val userMessage = UserMessage(prompt, mediaList)
+
+        val userMessage = UserMessage.builder()
+            .text(prompt)
+            .media(mediaList)
+            .build()
 
         return chatClient.prompt()
             .messages(userMessage)
