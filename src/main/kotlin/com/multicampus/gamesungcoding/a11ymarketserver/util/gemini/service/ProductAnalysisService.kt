@@ -1,39 +1,35 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service
 
-import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.dto.ProductAnalysisResult;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.model.Media;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.stereotype.Service;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.multipart.MultipartFile;
+import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.dto.ProductAnalysisResult
+import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.ai.model.Media
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.stereotype.Service
+import org.springframework.util.MimeTypeUtils
+import org.springframework.web.multipart.MultipartFile
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import javax.imageio.ImageIO
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-@Slf4j
 @Service
-public class ProductAnalysisService {
-    // 이미지 업로드 테스트 이후 적용
-    private final ChatClient chatClient;
+class ProductAnalysisService(
+    builder: ChatClient.Builder
+) {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
-    public ProductAnalysisService(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
-    }
+    private val chatClient: ChatClient = builder.build()
 
-    public ProductAnalysisResult analysisProductImage(String productName,
-                                                      String userDescription,
-                                                      List<MultipartFile> images) {
+    fun analysisProductImage(
+        productName: String?,
+        userDescription: String?,
+        images: MutableList<MultipartFile>?
+    ): ProductAnalysisResult? {
         // 이미지 업로드 테스트 이후 적용
-        String prompt = String.format("""
+        val prompt = String.format(
+            """
                         당신은 쇼핑몰 상품 등록 도우미입니다.
                         제공된 상품 이미지를 분석하여 다음 정보를 한국어 및 존댓말로 작성해주세요.
                         
@@ -53,42 +49,48 @@ public class ProductAnalysisService {
                         1. 상품에 대한 간단한 한 줄 요약
                         2. 사용처(어디에, 어떤 상황에서 사용하는지).
                         3. 사용 방법 (영양제라면 복용법, 기계라면 간단한 작동법, 의류라면 세탁 및 관리법 등).
-                        """,
-                productName,
-                (userDescription == null || userDescription.isBlank())
-                        ? "정보 없음 (이미지만 참고)"
-                        : userDescription
-        );
+                        
+                        """.trimIndent(),
+            productName,
+            if (userDescription == null || userDescription.isBlank())
+                "정보 없음 (이미지만 참고)"
+            else
+                userDescription
+        )
 
-        List<Media> mediaList = new ArrayList<>();
+        val mediaList: MutableList<Media?> = ArrayList<Media?>()
         if (images != null) {
-            for (var image : images) {
+            for (image in images) {
                 try {
-                    byte[] resizedBytes = resizeImage(image, 1024, "png");
-                    mediaList.add(new Media(
+                    val resizedBytes = resizeImage(image, 1024, "png")
+                    mediaList.add(
+                        Media(
                             MimeTypeUtils.IMAGE_PNG,
-                            new ByteArrayResource(resizedBytes)
-                    ));
-                } catch (IOException err) {
-                    log.error("이미지 처리 중 오류 발생: {}", err.getMessage());
+                            ByteArrayResource(resizedBytes)
+                        )
+                    )
+                } catch (err: IOException) {
+                    log.error("이미지 처리 중 오류 발생: {}", err.message)
                     try {
-                        mediaList.add(new Media(
-                                MimeTypeUtils.parseMimeType(Objects.requireNonNull(image.getContentType())),
-                                image.getResource()
-                        ));
-                    } catch (Exception e) {
-                        log.error("원본 이미지 추가 중 오류 발생: {}", e.getMessage());
+                        mediaList.add(
+                            Media(
+                                MimeTypeUtils.parseMimeType(image.contentType ?: "image/png"),
+                                image.resource
+                            )
+                        )
+                    } catch (e: Exception) {
+                        log.error("원본 이미지 추가 중 오류 발생: {}", e.message)
                     }
                 }
             }
         }
 
-        var userMessage = new UserMessage(prompt, mediaList);
+        val userMessage = UserMessage(prompt, mediaList)
 
         return chatClient.prompt()
-                .messages(userMessage)
-                .call()
-                .entity(ProductAnalysisResult.class);
+            .messages(userMessage)
+            .call()
+            .entity(ProductAnalysisResult::class.java)
 
         /* dummy
         return new ProductAnalysisResult(
@@ -98,43 +100,43 @@ public class ProductAnalysisService {
         );*/
     }
 
-    private byte[] resizeImage(MultipartFile originalImage, int targetSize, String format) throws IOException {
-        BufferedImage image = ImageIO.read(originalImage.getInputStream());
-        if (image == null) {
-            return originalImage.getBytes(); // 이미지가 아니면 원본 반환
-        }
+    @Throws(IOException::class)
+    private fun resizeImage(originalImage: MultipartFile, targetSize: Int, format: String): ByteArray {
+        val image = ImageIO.read(originalImage.inputStream) ?: return originalImage.bytes // 이미지가 아니면 원본 반환
 
-        int originalWidth = image.getWidth();
-        int originalHeight = image.getHeight();
+        val originalWidth = image.width
+        val originalHeight = image.height
 
         // 이미지가 targetSize보다 작으면 리사이징 안 함
         if (originalWidth <= targetSize && originalHeight <= targetSize) {
             // 포맷 통일을 위해 변환은 수행 (선택사항)
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, format, baos);
-            return baos.toByteArray();
+            return ByteArrayOutputStream().use {
+                ImageIO.write(image, format, it)
+                it.toByteArray()
+            }
         }
 
         // 비율 유지하며 새 크기 계산
-        int newWidth;
-        int newHeight;
+        val newWidth: Int
+        val newHeight: Int
         if (originalWidth > originalHeight) {
-            newWidth = targetSize;
-            newHeight = (int) (originalHeight * ((double) targetSize / originalWidth));
+            newWidth = targetSize
+            newHeight = (originalHeight * (targetSize.toDouble() / originalWidth)).toInt()
         } else {
-            newHeight = targetSize;
-            newWidth = (int) (originalWidth * ((double) targetSize / originalHeight));
+            newHeight = targetSize
+            newWidth = (originalWidth * (targetSize.toDouble() / originalHeight)).toInt()
         }
 
         // 리사이징 실행
-        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = resizedImage.createGraphics();
-        graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
-        graphics.dispose();
+        val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB)
+        val graphics = resizedImage.createGraphics()
+        graphics.drawImage(image, 0, 0, newWidth, newHeight, null)
+        graphics.dispose()
 
         // 바이트 배열로 변환
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(resizedImage, format, baos);
-        return baos.toByteArray();
+        return ByteArrayOutputStream().use {
+            ImageIO.write(resizedImage, format, it)
+            it.toByteArray()
+        }
     }
 }

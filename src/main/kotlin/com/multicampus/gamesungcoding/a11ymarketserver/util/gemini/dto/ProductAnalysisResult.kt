@@ -1,6 +1,7 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.dto;
+package com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.dto
 
-public record ProductAnalysisResult(String summary,
-                                    String usageContext,
-                                    String usageMethod) {
-}
+data class ProductAnalysisResult(
+    val summary: String,
+    val usageContext: String,
+    val usageMethod: String
+)
