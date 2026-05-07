@@ -612,9 +612,9 @@ class SellerService(
 
         return ProductAiSummary(
             productRepository.getReferenceById(productId),
-            result.summary,
-            result.usageContext,
-            result.usageMethod
+            summaryText = result?.summary ?: "",
+            usageContext = result?.usageContext ?: "",
+            usageMethod = result?.usageMethod ?: ""
         )
     }
 

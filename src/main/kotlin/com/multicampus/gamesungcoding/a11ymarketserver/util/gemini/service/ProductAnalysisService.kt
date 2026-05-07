@@ -25,7 +25,7 @@ class ProductAnalysisService(
     fun analysisProductImage(
         productName: String?,
         userDescription: String?,
-        images: MutableList<MultipartFile>?
+        images: List<MultipartFile>?
     ): ProductAnalysisResult? {
         // 이미지 업로드 테스트 이후 적용
         val prompt = String.format(
@@ -52,7 +52,7 @@ class ProductAnalysisService(
                         
                         """.trimIndent(),
             productName,
-            if (userDescription == null || userDescription.isBlank())
+            if (userDescription.isNullOrBlank())
                 "정보 없음 (이미지만 참고)"
             else
                 userDescription
