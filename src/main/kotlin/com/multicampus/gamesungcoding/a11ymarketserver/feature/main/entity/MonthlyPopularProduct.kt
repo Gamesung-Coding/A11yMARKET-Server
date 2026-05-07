@@ -5,7 +5,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
-import java.math.BigDecimal
 import java.util.*
 
 @Entity
@@ -16,18 +15,18 @@ class MonthlyPopularProduct(
     private var productName: String,
 
     @Column
-    private var productPrice: BigDecimal,
+    private var productPrice: Int,
 
     @Column
     private var productImageUrl: String,
 
-    @Column(columnDefinition = "RAW(16)")
+    @Column
     private var categoryId: UUID,
 
     @Column
     private var categoryName: String,
 
-    @Column(columnDefinition = "RAW(16)")
+    @Column
     private var sellerId: UUID,
 
     @Column
@@ -41,6 +40,6 @@ class MonthlyPopularProduct(
 
     ) {
     @Id
-    @Column(columnDefinition = "RAW(16)")
+    @Column
     var productId: UUID? = null
 }

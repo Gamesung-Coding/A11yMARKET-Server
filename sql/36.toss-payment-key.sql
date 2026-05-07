@@ -1,1 +1,0 @@
-ALTER TABLE orders ADD payment_key VARCHAR(200);

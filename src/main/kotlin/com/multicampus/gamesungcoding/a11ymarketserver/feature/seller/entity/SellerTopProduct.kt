@@ -5,7 +5,6 @@ import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
-import java.math.BigDecimal
 
 @Entity
 @Immutable
@@ -15,7 +14,7 @@ class SellerTopProduct(
     var productName: String,
 
     @Column
-    var productPrice: BigDecimal,
+    var productPrice: Int,
 
     @Column
     var productImageUrl: String,
@@ -26,7 +25,7 @@ class SellerTopProduct(
     var totalQuantitySold: Long,
 
     @Column
-    var totalSalesAmount: BigDecimal,
+    var totalSalesAmount: Int,
 
     @Column
     var salesRank: Int

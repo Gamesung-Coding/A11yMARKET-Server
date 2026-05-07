@@ -1,1 +1,0 @@
-DROP TABLE a11y_profiles;

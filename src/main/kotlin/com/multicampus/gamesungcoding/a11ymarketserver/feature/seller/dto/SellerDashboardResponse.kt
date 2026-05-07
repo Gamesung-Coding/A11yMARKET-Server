@@ -7,7 +7,7 @@ data class SellerDashboardResponse(
     val sellerId: UUID,
     val sellerName: String,
     val sellerIntro: String?,
-    val totalRevenue: BigDecimal?,
+    val totalRevenue: Int?,
     val totalOrderCount: Long?,
     val refundRate: BigDecimal?,
     val confirmedRate: BigDecimal?

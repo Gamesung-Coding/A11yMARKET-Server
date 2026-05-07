@@ -8,10 +8,10 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orde
 fun OrderItems.toResponse(): OrderItemResponse {
     return OrderItemResponse(
         orderItemId = this.orderItemId ?: throw InvalidRequestException("Order item ID not found"),
-        productId = this.product.productId
+        productId = this.product?.productId
             ?: throw InvalidRequestException("Product ID not found for order item ${this.orderItemId}"),
         productName = this.productName,
-        categoryName = this.product.category?.categoryName ?: "Unknown Category",
+        categoryName = this.product?.category?.categoryName ?: "Unknown Category",
         productPrice = this.productPrice,
         productQuantity = this.productQuantity,
         productTotalPrice = productPrice * productQuantity,

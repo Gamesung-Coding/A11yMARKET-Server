@@ -1,7 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto
 
-import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 data class SellerTopProductResponse(
     val sellerId: UUID,
@@ -11,6 +10,6 @@ data class SellerTopProductResponse(
     val productImageUrl: String?,
     val orderCount: Long,
     val totalQuantitySold: Long,
-    val totalSalesAmount: BigDecimal,
+    val totalSalesAmount: Int,
     val salesRank: Int
 )

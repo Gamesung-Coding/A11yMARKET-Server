@@ -21,7 +21,7 @@ class AddressInfo(
     @field:Pattern(regexp = "^\\d+$", message = "휴대폰 번호는 숫자여야 합니다.")
     var receiverPhone: String,
 
-    @Column(length = 5, nullable = false, columnDefinition = "CHAR(5)")
+    @Column(length = 5, nullable = false)
     @Convert(converter = TrimmedStringConverter::class)
     @field:Pattern(regexp = "^\\d{5}$", message = "우편번호는 5자리 숫자여야 합니다.")
     var receiverZipcode: String,

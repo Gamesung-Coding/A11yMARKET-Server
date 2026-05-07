@@ -184,7 +184,7 @@ class OrderService(
                 )
 
                 orderItem.cancelOrderItem(req.reason)
-                orderItem.product.fillUpStock(orderItem.productQuantity)
+                orderItem.product?.fillUpStock(orderItem.productQuantity)
             }
 
             OrderItemStatus.ACCEPTED, OrderItemStatus.SHIPPED -> orderItem.cancelOrderItem(req.reason)
@@ -246,7 +246,7 @@ class OrderService(
             }
             item.updateOrderItemStatus(OrderItemStatus.PAID)
             // 재고 차감
-            item.product.fillUpStock(-item.productQuantity)
+            item.product?.fillUpStock(-item.productQuantity)
         }
 
         requireNotNull(req.paymentKey) { "결제 키를 찾을 수 없습니다." }

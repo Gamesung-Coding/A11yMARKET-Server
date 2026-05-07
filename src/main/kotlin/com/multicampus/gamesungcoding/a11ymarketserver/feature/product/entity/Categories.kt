@@ -11,7 +11,7 @@ import java.util.*
 @Table(name = "categories")
 @EntityListeners(AuditingEntityListener::class)
 class Categories(
-    @Column(length = 200, nullable = false)
+    @Column(length = 100, nullable = false)
     var categoryName: String,
 
     @ManyToOne(fetch = FetchType.LAZY)

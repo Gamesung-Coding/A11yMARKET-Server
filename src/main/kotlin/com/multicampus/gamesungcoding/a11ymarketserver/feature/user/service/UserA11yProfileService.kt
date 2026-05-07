@@ -44,6 +44,7 @@ class UserA11yProfileService(
             profileInfo = A11yProfileInfo(
                 profileName = dto.profileName,
                 description = dto.description,
+                isPreset = false,
                 contrastLevel = dto.contrastLevel,
                 textSizeLevel = dto.textSizeLevel,
                 textSpacingLevel = dto.textSpacingLevel,

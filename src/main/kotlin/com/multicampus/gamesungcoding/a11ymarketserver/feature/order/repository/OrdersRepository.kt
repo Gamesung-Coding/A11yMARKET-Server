@@ -17,9 +17,7 @@ interface OrdersRepository : JpaRepository<Orders, UUID> {
     @Query(
         """
             SELECT o FROM Orders o
-            WHERE (:status IS NULL OR o.orderStatus = :status)
-            AND (
-                :searchType IS NULL OR :keyword IS NULL OR
+            WHERE :searchType IS NULL OR :keyword IS NULL OR
                 (
                     (:searchType = 'userName' AND LOWER(o.userName) LIKE LOWER(CONCAT('%', :keyword, '%')))
                     OR (:searchType = 'receiverName' AND LOWER(o.receiverName) LIKE LOWER(CONCAT('%', :keyword, '%')))
@@ -27,7 +25,6 @@ interface OrdersRepository : JpaRepository<Orders, UUID> {
                     OR (:searchType = 'receiverPhone' AND o.receiverPhone LIKE CONCAT('%', :keyword, '%'))
                     OR (:searchType = 'orderId' AND CAST(o.orderId AS string) LIKE CONCAT('%', :keyword, '%'))
                 )
-            )
             AND (:startDate IS NULL OR o.createdAt >= CAST(:startDate AS timestamp))
             AND (:endDate IS NULL OR o.createdAt <= CAST(:endDate AS timestamp))
             ORDER BY o.createdAt DESC

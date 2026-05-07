@@ -446,7 +446,7 @@ class SellerService(
 
         val paymentKey = orderItem.order.paymentKey ?: throw InvalidRequestException("결제 키를 찾을 수 없습니다.")
 
-        val productSeller = orderItem.product.seller
+        val productSeller = orderItem.product?.seller
             ?: throw DataNotFoundException("주문 상품의 판매자 정보를 찾을 수 없습니다.")
 
 

@@ -38,13 +38,13 @@ class Product(
     @Column(name = "product_stock")
     var productStock: Int,
 
-    @Column(name = "product_name", nullable = false)
+    @Column(name = "product_name", nullable = false, length = 256)
     var productName: String,
 
     @Column(name = "product_description", columnDefinition = "CLOB")
     var productDescription: String,
 
-    @Column(name = "product_status", length = 50)
+    @Column(name = "product_status", length = 20)
     @Enumerated(EnumType.STRING)
     var productStatus: ProductStatus
 ) {

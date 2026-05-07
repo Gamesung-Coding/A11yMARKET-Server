@@ -25,7 +25,7 @@ class Seller(
     @Column(nullable = false)
     var sellerName: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var businessNumber: String,
 
     @Column(length = 1024)

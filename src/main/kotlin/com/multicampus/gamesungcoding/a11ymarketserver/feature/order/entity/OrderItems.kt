@@ -18,7 +18,7 @@ class OrderItems(
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "product_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    var product: Product,
+    var product: Product? = null,
 
     @Column(nullable = false)
     var productName: String,

@@ -18,17 +18,17 @@ class Users(
     @Column(length = 30)
     var userName: String,
 
-    @Column(length = 50)
+    @Column(length = 254)
     var userEmail: String,
 
-    @Column(length = 20)
+    @Column(length = 100)
     var userNickname: String,
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     var userRole: UserRole,
 
-    @Column(length = 100)
+    @Column(length = 60)
     var userPass: String? = null,
 
     @Column(length = 15)

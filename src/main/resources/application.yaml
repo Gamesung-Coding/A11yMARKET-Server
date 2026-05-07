@@ -10,6 +10,12 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  # Redis configuration
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
   # JPA configuration
   jpa:
     show-sql: ${JPA_SHOW_SQL:false}

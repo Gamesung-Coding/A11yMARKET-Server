@@ -11,6 +11,9 @@ class A11yProfileInfo(
     @Column(length = 200)
     var description: String,
 
+    @Column
+    var isPreset: Boolean = false,
+
     @Column(nullable = false)
     var contrastLevel: Int,
 

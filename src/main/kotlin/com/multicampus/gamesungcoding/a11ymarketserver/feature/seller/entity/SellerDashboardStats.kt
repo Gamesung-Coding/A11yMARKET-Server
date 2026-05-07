@@ -5,7 +5,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
-import java.math.BigDecimal
 import java.util.*
 
 @Entity
@@ -17,7 +16,7 @@ class SellerDashboardStats(
     var sellerId: UUID,
 
     @Column
-    var totalRevenue: BigDecimal,
+    var totalRevenue: Int,
 
     @Column
     var totalOrderCount: Long,

@@ -27,7 +27,7 @@ class Orders(
     @Column(length = 15, nullable = false)
     var receiverPhone: String,
 
-    @Column(length = 5, columnDefinition = "CHAR(5)")
+    @Column(length = 5, nullable = false)
     var receiverZipcode: String,
 
     @Column(length = 100, nullable = false)
