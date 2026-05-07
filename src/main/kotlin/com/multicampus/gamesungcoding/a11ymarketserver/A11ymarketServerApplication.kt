@@ -1,15 +1,13 @@
-package com.multicampus.gamesungcoding.a11ymarketserver;
+package com.multicampus.gamesungcoding.a11ymarketserver
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.boot.runApplication
 
 @SpringBootApplication
-@ConfigurationPropertiesScan(basePackages = "com.multicampus.gamesungcoding.a11ymarketserver.common.properties")
-public class A11ymarketServerApplication {
+@ConfigurationPropertiesScan(basePackages = ["com.multicampus.gamesungcoding.a11ymarketserver.common.properties"])
+class A11ymarketServerApplication
 
-    public static void main(String[] args) {
-        SpringApplication.run(A11ymarketServerApplication.class, args);
-    }
-
+fun main(args: Array<String>) {
+    runApplication<A11ymarketServerApplication>(*args)
 }
