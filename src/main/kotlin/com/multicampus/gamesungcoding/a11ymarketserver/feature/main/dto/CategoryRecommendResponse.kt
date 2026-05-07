@@ -1,30 +1,15 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Categories;
-import lombok.Builder;
-import lombok.Getter;
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+data class CategoryRecommendResponse(
+    var categoryId: UUID,
+    var categoryName: String
+) {
 
-@Getter
-@Builder
-public class CategoryRecommendResponse {
-    private UUID categoryId;
-    private String categoryName;
+    val products: MutableList<CatProductInfo> = mutableListOf()
 
-    @Builder.Default
-    private List<CatProductInfo> products = new ArrayList<>();
-
-    public static CategoryRecommendResponse fromEntity(Categories category) {
-        return CategoryRecommendResponse.builder()
-                .categoryId(category.getCategoryId())
-                .categoryName(category.getCategoryName())
-                .build();
-    }
-
-    public void addProduct(CatProductInfo product) {
-        this.products.add(product);
+    fun addProduct(product: CatProductInfo) {
+        this.products.add(product)
     }
 }

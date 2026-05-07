@@ -4,7 +4,6 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto.Category
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto.EventResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.main.entity.MonthlyPopularProduct
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.main.service.MainService
-import lombok.RequiredArgsConstructor
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController

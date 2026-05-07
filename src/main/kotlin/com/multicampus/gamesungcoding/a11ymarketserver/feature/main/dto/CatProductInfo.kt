@@ -1,9 +1,10 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.dto
 
-import java.util.UUID;
+import java.util.*
 
-public record CatProductInfo(UUID productId,
-                             String productName,
-                             Integer productPrice,
-                             String productImageUrl) {
-}
+data class CatProductInfo(
+    val productId: UUID,
+    val productName: String,
+    val productPrice: Int,
+    val productImageUrl: String
+)
