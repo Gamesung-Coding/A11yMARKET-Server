@@ -14,29 +14,22 @@ import java.util.*
 @Table(name = "USER_A11Y_PROFILES")
 @EntityListeners(AuditingEntityListener::class)
 class UserA11yProfile(
-    profileInfo: A11yProfileInfo,
-    user: Users? = null,
+    @Embedded
+    var profileInfo: A11yProfileInfo,
+
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var user: Users? = null,
 ) {
     @Id
     @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
     var profileId: UUID? = null
-        private set
-
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var user: Users? = user
-        private set
-
-    @Embedded
-    var profileInfo: A11yProfileInfo = profileInfo
-        private set
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null
-        private set
 
     @LastModifiedDate
     @Column(nullable = false)

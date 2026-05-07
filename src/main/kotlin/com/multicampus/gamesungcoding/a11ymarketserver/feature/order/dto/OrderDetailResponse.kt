@@ -7,7 +7,7 @@ data class OrderDetailResponse(
     val orderId: UUID,
     val userName: String,
     val userEmail: String,
-    val userPhone: String,
+    val userPhone: String?,
     val receiverName: String,
     val receiverPhone: String,
     val receiverZipcode: String,

@@ -5,59 +5,36 @@ import jakarta.persistence.Embeddable
 
 @Embeddable
 class A11yProfileInfo(
-    profileName: String,
-    description: String,
-    contrastLevel: Int,
-    textSizeLevel: Int,
-    textSpacingLevel: Int,
-    lineHeightLevel: Int,
-    textAlign: String,
-    screenReader: Boolean,
-    smartContrast: Boolean,
-    highlightLinks: Boolean,
-    cursorHighlight: Boolean,
-) {
     @Column(nullable = false, length = 50)
-    var profileName: String = profileName
-        private set
+    var profileName: String,
 
     @Column(length = 200)
-    var description: String = description
-        private set
+    var description: String,
 
     @Column(nullable = false)
-    var contrastLevel: Int = contrastLevel
-        private set
+    var contrastLevel: Int,
 
     @Column(nullable = false)
-    var textSizeLevel: Int = textSizeLevel
-        private set
+    var textSizeLevel: Int,
 
     @Column(nullable = false)
-    var textSpacingLevel: Int = textSpacingLevel
-        private set
+    var textSpacingLevel: Int,
 
     @Column(nullable = false)
-    var lineHeightLevel: Int = lineHeightLevel
-        private set
+    var lineHeightLevel: Int,
 
     @Column(length = 10, nullable = false)
-    var textAlign: String = textAlign
-        private set
+    var textAlign: String,
 
     @Column(nullable = false)
-    var screenReader: Boolean = screenReader
-        private set
+    var screenReader: Boolean,
 
     @Column(nullable = false)
-    var smartContrast: Boolean = smartContrast
-        private set
+    var smartContrast: Boolean,
 
     @Column(nullable = false)
-    var highlightLinks: Boolean = highlightLinks
-        private set
+    var highlightLinks: Boolean,
 
     @Column(nullable = false)
-    var cursorHighlight: Boolean = cursorHighlight
-        private set
-}
+    var cursorHighlight: Boolean,
+)

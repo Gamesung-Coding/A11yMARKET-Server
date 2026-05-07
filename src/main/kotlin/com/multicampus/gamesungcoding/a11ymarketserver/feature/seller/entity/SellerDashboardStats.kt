@@ -12,30 +12,19 @@ import java.util.*
 @Immutable
 @Table(name = "view_seller_dashboard_stats")
 class SellerDashboardStats(
-    sellerId: UUID,
-    totalRevenue: BigDecimal,
-    totalOrderCount: Long,
-    confirmedCount: Long,
-    refundedCount: Long
-) {
     @Id
     @Column
-    var sellerId: UUID = sellerId
-        private set
+    var sellerId: UUID,
 
     @Column
-    var totalRevenue: BigDecimal = totalRevenue
-        private set
+    var totalRevenue: BigDecimal,
 
     @Column
-    var totalOrderCount: Long = totalOrderCount
-        private set
+    var totalOrderCount: Long,
 
     @Column
-    var confirmedCount: Long = confirmedCount
-        private set
+    var confirmedCount: Long,
 
     @Column
-    var refundedCount: Long = refundedCount
-        private set
-}
+    var refundedCount: Long
+)

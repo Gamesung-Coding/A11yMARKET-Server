@@ -13,40 +13,31 @@ import java.util.*
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 class Addresses(
-    user: Users,
-    address: AddressInfo,
-    isDefault: Boolean
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    var user: Users,
+
+    @Embedded
+    var address: AddressInfo,
+
+    @Column(nullable = false)
+    var isDefault: Boolean
 ) {
     @Id
     @UuidV7
     @Column(length = 16, updatable = false, nullable = false)
     var addressId: UUID? = null
-        private set
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", updatable = false, nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    var user: Users = user
-        private set
-
-    @Embedded
-    var address: AddressInfo = address
-        private set
-
-    @Column(nullable = false)
-    var isDefault: Boolean = isDefault
-        private set
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null
-        private set
 
     fun updateAddrInfo(addressInfo: AddressInfo) {
         this.address = addressInfo
     }
 
-    fun setDefault(isDefault: Boolean) {
+    fun changeIsDefault(isDefault: Boolean) {
         this.isDefault = isDefault
     }
 }

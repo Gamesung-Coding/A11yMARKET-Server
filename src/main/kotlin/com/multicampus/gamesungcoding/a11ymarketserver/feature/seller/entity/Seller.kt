@@ -17,64 +17,47 @@ import java.util.*
 @Table(name = "sellers")
 @EntityListeners(AuditingEntityListener::class)
 class Seller(
-    user: Users,
-    sellerName: String,
-    businessNumber: String,
-    sellerIntro: String? = null
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    var user: Users,
+
+    @Column(nullable = false)
+    var sellerName: String,
+
+    @Column(nullable = false)
+    var businessNumber: String,
+
+    @Column(length = 1024)
+    var sellerIntro: String? = null
 ) {
     @Id
     @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
     var sellerId: UUID? = null
-        private set
-    
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    var user: Users = user
-        private set
-
-    @Column(nullable = false)
-    var sellerName: String = sellerName
-        private set
-
-    @Column(nullable = false)
-    var businessNumber: String = businessNumber
-        private set
-
-    @Column(length = 1024)
-    var sellerIntro: String? = sellerIntro
-        private set
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     var sellerGrade: SellerGrades = SellerGrades.NEWER
-        private set
 
     @Column(nullable = false, name = "is_a11y_guarantee")
     var isA11yGuarantee: Boolean = false
-        private set
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     var sellerSubmitStatus: SellerSubmitStatus = SellerSubmitStatus.PENDING
-        private set
 
     @CreatedDate
     @Column(updatable = false)
     var submitDate: LocalDateTime? = null
-        private set
 
     var approvedDate: LocalDateTime? = null
-        private set
 
     @LastModifiedDate
     var updatedAt: LocalDateTime? = null
-        private set
 
     @OneToMany(mappedBy = "seller")
     var products: MutableList<Product> = mutableListOf()
-        private set
 
     // 비즈니스 로직
     fun approve() {

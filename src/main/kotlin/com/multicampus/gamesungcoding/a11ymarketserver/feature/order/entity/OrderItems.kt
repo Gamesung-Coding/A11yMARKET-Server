@@ -10,58 +10,41 @@ import java.util.*
 @Entity
 @Table(name = "ORDER_ITEMS")
 class OrderItems(
-    order: Orders,
-    product: Product,
-    productName: String,
-    productPrice: Int,
-    productQuantity: Int,
-    productImageUrl: String?
-) {
-    @Id
-    @UuidV7
-    @Column(length = 16, nullable = false, updatable = false)
-    var orderItemId: UUID? = null
-        private set
-
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "order_id", updatable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    var order: Orders = order
-        private set
+    var order: Orders,
 
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "product_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    var product: Product = product
-        private set
+    var product: Product,
 
     @Column(nullable = false)
-    var productName: String = productName
-        private set
+    var productName: String,
 
     @Column(nullable = false)
-    var productPrice: Int = productPrice
-        private set
+    var productPrice: Int,
 
     @Column(nullable = false)
-    var productQuantity: Int = productQuantity
-        private set
+    var productQuantity: Int,
 
     @Column
-    var productImageUrl: String? = productImageUrl
-        private set
+    var productImageUrl: String? = null,
+
+    ) {
+    @Id
+    @UuidV7
+    @Column(length = 16, nullable = false, updatable = false)
+    var orderItemId: UUID? = null
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    var orderItemStatus: OrderItemStatus
+    var orderItemStatus: OrderItemStatus = OrderItemStatus.ORDERED
 
     @Lob
     @Column(columnDefinition = "TEXT")
     var cancelReason: String? = null
-
-    init {
-        this.orderItemStatus = OrderItemStatus.ORDERED
-    }
 
     fun cancelOrderItem(reason: String?) {
         when (this.orderItemStatus) {

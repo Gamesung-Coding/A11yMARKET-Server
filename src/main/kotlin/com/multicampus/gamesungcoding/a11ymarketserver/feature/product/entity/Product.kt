@@ -23,72 +23,52 @@ import java.util.*
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener::class)
 class Product(
-    seller: Seller? = null,
-    category: Categories? = null,
-    productPrice: Int,
-    productStock: Int,
-    productName: String,
-    productDescription: String,
-    productStatus: ProductStatus
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "seller_id", updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var seller: Seller? = null,
+
+    @JoinColumn(name = "category_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    var category: Categories? = null,
+
+    @Column(name = "product_price")
+    var productPrice: Int,
+
+    @Column(name = "product_stock")
+    var productStock: Int,
+
+    @Column(name = "product_name", nullable = false)
+    var productName: String,
+
+    @Column(name = "product_description", columnDefinition = "CLOB")
+    var productDescription: String,
+
+    @Column(name = "product_status", length = 50)
+    @Enumerated(EnumType.STRING)
+    var productStatus: ProductStatus
 ) {
     @Id
     @UuidV7
     @Column(nullable = false, updatable = false, length = 16)
     var productId: UUID? = null
-        private set
-    
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "seller_id", updatable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var seller: Seller? = seller
-        private set
-
-    @JoinColumn(name = "category_id")
-    @ManyToOne(fetch = FetchType.LAZY)
-    var category: Categories? = category
-        private set
-
-    @Column(name = "product_price")
-    var productPrice: Int = productPrice
-        private set
-
-    @Column(name = "product_stock")
-    var productStock: Int = productStock
-        private set
-
-    @Column(name = "product_name", nullable = false)
-    var productName: String = productName
-        private set
-
-    @Column(name = "product_description", columnDefinition = "CLOB")
-    var productDescription: String = productDescription
-        private set
-
-    @Column(name = "product_status", length = 50)
-    @Enumerated(EnumType.STRING)
-    var productStatus: ProductStatus = productStatus
-        private set
 
     @CreatedDate
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "submit_date", updatable = false)
     var submitDate: LocalDateTime? = null
-        private set
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "approved_date", updatable = false)
     var approvedDate: LocalDateTime? = null
-        private set
 
     @LastModifiedDate
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null
-        private set
 
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
     var productImages: MutableList<ProductImages> = mutableListOf()
-        private set
 
     /* === 의도 메서드 === */
     fun changeProductName(newProductName: String) {
@@ -152,4 +132,3 @@ class Product(
         this.productStock = productStock
     }
 }
-

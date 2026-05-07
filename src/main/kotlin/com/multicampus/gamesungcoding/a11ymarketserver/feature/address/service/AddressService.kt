@@ -102,7 +102,7 @@ class AddressService(
 
         if (defaultAddress != null) {
             if (defaultAddress.addressId == addressId) return
-            defaultAddress.setDefault(false)
+            defaultAddress.changeIsDefault(false)
         }
 
         setDefaultAddressByAddressId(userId, addressId)
@@ -117,10 +117,10 @@ class AddressService(
         }
 
         addressRepository.findByUserUserIdAndIsDefaultTrue(userId)?.let {
-            if (it.addressId != addressId) it.setDefault(false)
+            if (it.addressId != addressId) it.changeIsDefault(false)
         }
 
-        address.setDefault(true)
+        address.changeIsDefault(true)
     }
 
     private fun getUserById(userId: UUID): Users {

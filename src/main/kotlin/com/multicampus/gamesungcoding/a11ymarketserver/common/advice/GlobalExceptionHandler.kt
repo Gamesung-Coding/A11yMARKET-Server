@@ -59,11 +59,8 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleLoginFailedException(ex: LoginFailedException) = ResponseEntity
         .status(HttpStatus.NOT_FOUND)
-        .body<LoginErrResponse?>(
-            LoginErrResponse(
-                ex.message ?: "로그인에 실패했습니다."
-            )
-        ).also { log.error(ex.message) }
+        .body(LoginErrResponse(ex.message ?: "로그인에 실패했습니다."))
+        .also { log.error(ex.message) }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

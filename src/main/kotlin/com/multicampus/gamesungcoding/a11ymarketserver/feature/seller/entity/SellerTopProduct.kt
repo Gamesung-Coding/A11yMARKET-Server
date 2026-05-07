@@ -10,28 +10,27 @@ import java.math.BigDecimal
 @Entity
 @Immutable
 @Table(name = "view_seller_top_products")
-class SellerTopProduct {
+class SellerTopProduct(
+    @Column
+    var productName: String,
+
+    @Column
+    var productPrice: BigDecimal,
+
+    @Column
+    var productImageUrl: String,
+    @Column
+    var orderCount: Long,
+
+    @Column
+    var totalQuantitySold: Long,
+
+    @Column
+    var totalSalesAmount: BigDecimal,
+
+    @Column
+    var salesRank: Int
+) {
     @EmbeddedId
     var id: SellerTopProductId? = null
-
-    @Column
-    private var productName: String? = null
-
-    @Column
-    private var productPrice: BigDecimal? = null
-
-    @Column
-    private var productImageUrl: String? = null
-
-    @Column
-    private var orderCount: Long? = null
-
-    @Column
-    private var totalQuantitySold: Long? = null
-
-    @Column
-    private var totalSalesAmount: BigDecimal? = null
-
-    @Column
-    private var salesRank: Int? = null
 }

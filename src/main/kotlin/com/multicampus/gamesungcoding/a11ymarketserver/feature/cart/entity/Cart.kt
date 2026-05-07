@@ -12,17 +12,13 @@ import java.util.*
 @EntityListeners(AuditingEntityListener::class)
 @Table(name = "carts")
 class Cart(
-    user: Users
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "user_id", updatable = false, nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    var user: Users
 ) {
     @Id
     @UuidV7
     @Column(length = 16, updatable = false, nullable = false)
     var cartId: UUID? = null
-        private set
-
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", updatable = false, nullable = false)
-    @OneToOne(fetch = FetchType.LAZY)
-    var user: Users = user
-        private set
 }

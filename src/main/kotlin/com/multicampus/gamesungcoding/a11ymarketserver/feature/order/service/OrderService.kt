@@ -309,12 +309,12 @@ class OrderService(
         val imageUrl = product.productImages.firstOrNull()?.imageUrl
 
         return OrderItems(
-            order,
-            product,
-            product.productName,
-            product.productPrice,
-            quantity,
-            imageUrl
+            order = order,
+            product = product,
+            productName = product.productName,
+            productPrice = product.productPrice,
+            productQuantity = quantity,
+            productImageUrl = imageUrl
         )
 
     }

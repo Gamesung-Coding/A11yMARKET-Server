@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto
 
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus
 import java.time.LocalDateTime
@@ -23,11 +24,11 @@ data class ProductDTO(
         @JvmStatic
         fun fromEntity(entity: Product): ProductDTO {
             return ProductDTO(
-                entity.productId,
+                entity.productId ?: throw InvalidRequestException("Product ID is missing"),
                 entity.productName,
                 entity.productPrice,
                 entity.productStatus,
-                entity.submitDate
+                entity.submitDate ?: throw InvalidRequestException("Submit Date is missing")
             )
         }
     }
